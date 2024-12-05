@@ -69,7 +69,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'User created successfully',
-                'data' => new UserResource($user),
+                'data' => $user,
             ], 200);
         } catch (\Exception $e) {
             // Handle any errors that occur during user creation
@@ -93,7 +93,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'User Details Fetched successfully',
-                'data' => new UserResource($user->load('transactions')),
+                'data' => $user,
             ], 200);
         } catch (\Exception $e) {
             // Handle any errors that occur 
@@ -134,7 +134,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'User Updated successfully',
-                'data' => new UserResource($user),
+                'data' => $user,
             ], 200);
         } catch (Exception $e) {
             // Handle any errors that occur 

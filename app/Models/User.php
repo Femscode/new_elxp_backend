@@ -2,28 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Auth\Authenticatable as AuthenticableTrait;
-
-use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-// use Laravel\Passport\HasApiTokens;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, AuthenticableTrait  ;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
-    protected $guarded = [];
-    protected $table = 'users';
-        
 
+    protected $guarded = [];
+    // protected $fillable = ['uuid', 'first_name', 'last_name', 'email', 'bio', 'username', 'user_type', 'timezone', 'language', 'phone', 'image'];
+    protected $table = 'users';
+
+    // define transaction relationship 
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'user_id', 'uuid');
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -34,12 +38,27 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    //use uuid to relate to users instead of ID for security reasons
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
+
+
+
+
+
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
 }

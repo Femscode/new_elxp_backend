@@ -41,7 +41,7 @@ class CourseController extends Controller
             $course = Course::create($data);
             return response()->json([
                 'status' => true,
-                'data' => new CourseResource($course),
+                'data' => $course,
                 'message' => 'Course Created Successfully!'
             ], 200);
         } catch (\Exception $e) {
@@ -80,7 +80,7 @@ class CourseController extends Controller
             $course->update($data);
             return response()->json([
                 'status' => true,
-                'data' => new CourseResource($course),
+                'data' => $course,
                 'message' => 'Course Updated Successfully!'
             ], 200);
         } catch (\Exception $e) {
@@ -97,7 +97,7 @@ class CourseController extends Controller
         $course = Course::where('uuid', $courseId)->firstOrFail();
         return response()->json([
             'status' => true,
-            'data' => new CourseResource($course),
+            'data' => $course,
             'message' => 'Course Detailes Fetched Successfully!'
         ], 200);
     }
@@ -107,7 +107,7 @@ class CourseController extends Controller
         $course = Course::where('user_id', $userID)->firstOrFail();
         return response()->json([
             'status' => true,
-            'data' => new CourseResource($course),
+            'data' => $course,
             'message' => 'Course Detailes Fetched Successfully!'
         ], 200);
     }
