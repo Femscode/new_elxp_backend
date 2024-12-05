@@ -76,7 +76,7 @@ class RegisteredUserController extends Controller
     {
       
       
-        return true;
+        dd($request->all());
         try {
           
             // Validate the request
