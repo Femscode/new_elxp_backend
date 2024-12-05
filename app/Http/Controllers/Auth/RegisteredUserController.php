@@ -76,6 +76,7 @@ class RegisteredUserController extends Controller
     {
       
       
+        return true;
         try {
           
             // Validate the request
