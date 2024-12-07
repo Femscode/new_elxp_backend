@@ -54,9 +54,17 @@ class CourseController extends Controller
     public function update(Request $request)
     {
         try {
-            $this->validate($request, [
-                'course_id' => 'required'
+            $validator = Validator::make($request->all(), [
+               'course_id' => 'required'
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator
+                ], 401);
+            }
+          
             $user = Auth::user();
 
 
