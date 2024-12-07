@@ -54,12 +54,19 @@ class CourseController extends Controller
     public function update(Request $request)
     {
         try {
+            $this->validate($request, [
+                'course_id' => 'required'
+            ]);
             $user = Auth::user();
 
 
             $data = $request->except(['file', 'image']);
+            $data = array_filter($data, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
 
             $course = Course::where('uuid', $request->course_id)->firstOrFail();
+           
             $data['user_id'] = $data['instructor_id'] = $user->uuid;
             if ($request->has('image') && $request->image !== null) {
                 // Check if there is an existing image and delete it
@@ -98,7 +105,7 @@ class CourseController extends Controller
         return response()->json([
             'status' => true,
             'data' => $course,
-            'message' => 'Course Detailes Fetched Successfully!'
+            'message' => 'Course Details Fetched Successfully!'
         ], 200);
     }
     public function allcourses($userID)

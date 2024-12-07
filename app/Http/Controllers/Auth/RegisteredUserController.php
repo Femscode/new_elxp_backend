@@ -10,9 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
-use Illuminate\Support\Facades\Validator;
 
 class RegisteredUserController extends Controller
 {
@@ -111,6 +112,17 @@ class RegisteredUserController extends Controller
             // Auth::login($user);
 
             // Return the response
+            try {
+                $email = $user->email;
+                $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
+                Mail::send('mail.welcome', $data, function ($message) use ($email) {
+                    $message->to($email)->subject('CSLXP Reset Password');
+                    $message->from('support@connectinskillz.com', 'Connectinskillz');
+                });
+                $data['message'] = 'Welcome Mail Sent Successfully!';
+            } catch (\Exception $e) {
+                $data['message'] = 'Welcome mail could not be sent due to some technical issues!';
+            }
           
 
             return response()->json([

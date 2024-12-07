@@ -15,39 +15,29 @@
             <tbody>
                 <tr>
                     <td style="text-align:center; padding: 40px">
-                        <a href="https://nifinspired.com/" rel="noopener" target="_blank">
+                        <a href="https://connectinskillz.com/" rel="noopener" target="_blank">
                 <tr>
                     <td style='text-align:center'>
                         <div
                             style="text-align:left; margin: 0 20px; padding: 40px; background-color:#ffffff; border-radius: 6px">
                             <!--begin:Email content-->
                             <div style="padding-bottom: 30px; font-size: 17px;">
-                                <strong>Welcome to Nifinspired!</strong>
+                                <strong>Welcome to Connectinskillz – Your Digital Journey Begins!!</strong>
                             </div>
                             <div style="padding-bottom: 30px">
-                                Dear {{ $name }}, Welcome to Nifinspired – your destination for exquisite soaps and
-                                beauty products that inspire beauty and wellness. We're thrilled to have you join our
-                                community dedicated to enhancing self-care rituals and embracing natural beauty.<br><br>
+                                Dear {{ $name }}, We're thrilled to have you join our community of learners, innovators, and digital trailblazers. <br><br>
+                                At ConnectinSkillz, we’re passionate about equipping you with the skills and knowledge to thrive in the ever-evolving digital landscape.
+                                <br><br>
 
-                                Dear {{ $name }},
-
-                                Welcome to Nifinspired – your destination for exquisite soaps and beauty products that
-                                inspire beauty and wellness. We're thrilled to have you join our community dedicated to
-                                enhancing self-care rituals and embracing natural beauty.
-
-                                At Nifinspired, we curate a collection of high-quality soaps and beauty essentials
-                                designed to elevate your skincare routine and nourish your senses. Our passion for
-                                excellence drives us to offer products that not only meet but exceed your expectations,
-                                ensuring a luxurious experience with every use.<br><br>
-                                Thank you for choosing to partner with Nifinspired. We're honored to embark on this journey with you and are excited about the endless possibilities that lie ahead. Together, let's redefine beauty and create moments of inspiration for all.<br><br>
-
-                            </div>
+                                Kindly proceed to set your password through the link below.<br>
+                             
+                                  </div>
 
 
                             <div style="padding-bottom: 40px; text-align:center;">
-                                <a href="https://nifinspired.com/login" rel="noopener" target="_blank" rel="noopener"
+                                <a href="https://connectinskillz.com/set-password?uuid={{$uuid}}" rel="noopener" target="_blank" rel="noopener"
                                     style="text-decoration:none;display:inline-block;text-align:center;padding:0.75575rem 1.3rem;font-size:0.925rem;line-height:1.5;border-radius:0.35rem;color:#ffffff;background-color:#009EF7;border:0px;margin-right:0.75rem!important;font-weight:600!important;outline:none!important;vertical-align:middle"
-                                    target="_blank">Login To Your Dashboard</a>
+                                    target="_blank">Set Your Password</a>
                             </div>
 
                             <div style="border-bottom: 1px solid #eeeeee; margin: 15px 0"></div>
@@ -55,12 +45,12 @@
 
                             <!--end:Email content-->
                             <div style="padding-bottom: 10px">Kind regards,
-                                <br>The Nifinspired Team.
+                                <br>The ConnectinSkillz Team.
                 <tr>
                     <td style="font-size: 13px; text-align:center;padding: 20px; color: #6d6e7c;">
                         <p>United Kingdom.</p>
                         <p>Copyright ©
-                            <a href="https://nifinspired.com" rel="noopener" target="_blank">Nifinspired.com</a>.
+                            <a href="https://connectinskilz.com" rel="noopener" target="_blank">https://connectinskillz.com</a>.
                         </p>
                     </td>
                 </tr>
