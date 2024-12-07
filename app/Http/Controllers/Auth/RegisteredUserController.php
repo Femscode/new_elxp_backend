@@ -188,6 +188,7 @@ class RegisteredUserController extends Controller
 
             // Check the user's credentials
             $user = User::where('email', $request->email)->first();
+            return ([$user->password, $request->password, $user]);
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([
