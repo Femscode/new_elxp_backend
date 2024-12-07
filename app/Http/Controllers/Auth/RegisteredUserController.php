@@ -116,18 +116,19 @@ class RegisteredUserController extends Controller
                 $email = $user->email;
                 $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
                 Mail::send('mail.welcome', $data, function ($message) use ($email) {
-                    $message->to($email)->subject('CSLXP Reset Password');
+                    $message->to($email)->subject('Welcome to CSLXP');
                     $message->from('support@connectinskillz.com', 'Connectinskillz');
                 });
                 $data['message'] = 'Welcome Mail Sent Successfully!';
             } catch (\Exception $e) {
-                $data['message'] = 'Welcome mail could not be sent due to some technical issues!';
+                $data['message'] = $e->getMessage();
             }
           
 
             return response()->json([
                 'status' => true,
                 'message' => 'User created successfully',
+                'mail_status' => $data['message'],
                 'data' => $user,
                 // 'token' =>  $user->createToken('AuthToken')->plainTextToken, // Generate authentication token
             ], 201);
