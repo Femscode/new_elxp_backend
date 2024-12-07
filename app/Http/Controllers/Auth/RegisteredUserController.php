@@ -150,6 +150,7 @@ class RegisteredUserController extends Controller
             // Create the user
             $user = User::where('uuid',$request->uuid)->first();
             $user->password = Hash::make($request->password);
+            $user->save();
           
             // Log the user in
             Auth::login($user);
@@ -188,7 +189,7 @@ class RegisteredUserController extends Controller
 
             // Check the user's credentials
             $user = User::where('email', $request->email)->first();
-            return ([$user->password, $request->password, $user]);
+           
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([
