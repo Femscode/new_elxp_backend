@@ -25,7 +25,8 @@ class UserController extends Controller
         return UserResource::collection(User::all());
     }
 
-    public function store2(Request $request){
+    public function store2(Request $request)
+    {
         dd("here");
     }
 
@@ -53,12 +54,12 @@ class UserController extends Controller
 
         try {
             // Create a new user with validated data
-          
+
             $data = $request->except(['file', 'image']);
-            if($request->has('image') && $request->image !== null)  {
+            if ($request->has('image') && $request->image !== null) {
                 $image = $request->image;
                 $imageName = $image->hashName();
-                $image->move(public_path("profilePic"),$imageName);
+                $image->move(public_path("profilePic"), $imageName);
                 $data['image'] = $imageName;
             }
             $data['uuid'] = Str::uuid();
@@ -113,7 +114,7 @@ class UserController extends Controller
         try {
 
             $user = Auth::user();
-           
+
             $data = $request->except(['file', 'image']);
             //Attempt to updte the user
             if ($request->has('image') && $request->image !== null) {
@@ -210,7 +211,7 @@ class UserController extends Controller
                     'message' => 'Email Address Not Registered With Us.',
                 ], 200);
             }
-            $name = $check_email->name;
+            $name = $check_email->first_name;
 
 
             DB::table('password_reset_tokens')->insert([
@@ -222,14 +223,18 @@ class UserController extends Controller
 
             //here is where the mail comes in
             $data = array('name' => $name, 'ref' => $ref, 'email' => $email);
-
-            // Mail::send('mail.forgot-password', $data, function ($message) use ($email) {
-            //     $message->to($email)->subject('Nifinspired Password Reset Email');
-            //     $message->from('support@connectinskillz.com', 'Connectinskillz');
-            // });
+            try {
+                Mail::send('mail.forgot-password', $data, function ($message) use ($email) {
+                    $message->to($email)->subject('CSLXP Reset Password');
+                    $message->from('support@connectinskillz.com', 'Connectinskillz');
+                });
+                $data['message'] = 'Password Reset Mail Sent Successfully!';
+            } catch (\Exception $e) {
+                $data['message'] = 'Password reset mail could not be sent due to some technical issues!';
+            }
             return response()->json([
                 'status' => true,
-                'message' => 'Password Reset Mail Sent Successfully!',
+                'message' => $data['message'],
                 'token' => $ref
             ], 200);
         } catch (\Exception $e) {
@@ -239,5 +244,4 @@ class UserController extends Controller
             ], 500);
         }
     }
-
 }

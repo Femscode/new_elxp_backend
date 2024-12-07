@@ -15,14 +15,14 @@
             <tbody>
                 <tr>
                     <td style="text-align:center; padding: 40px">
-                        <a href="https://nifinspired.com/" rel="noopener" target="_blank">
+                        <a href="https://connectinskillz.com/" rel="noopener" target="_blank">
                 <tr>
                     <td style='text-align:center'>
                         <div
                             style="text-align:left; margin: 0 20px; padding: 40px; background-color:#ffffff; border-radius: 6px">
                             <!--begin:Email content-->
                             <div style="padding-bottom: 30px; font-size: 17px;">
-                                <strong>Thanks for choosing Nifinspired!</strong>
+                                <strong>Thanks for choosing Connectinskillz!</strong>
                             </div>
                             <div style="padding-bottom: 30px">
                                 Hi {{ ucfirst($name) }},<br><br>
@@ -34,7 +34,7 @@
 
 
                             <div style="padding-bottom: 40px; text-align:center;">
-                                <a href="https://nifinspired.com/password-reset?token={{ $ref }}&email={{$email}}" rel="noopener"
+                                <a href="https://connectinskillz.com/password-reset?token={{ $ref }}&email={{$email}}" rel="noopener"
                                     target="_blank" rel="noopener"
                                     style="text-decoration:none;display:inline-block;text-align:center;padding:0.75575rem 1.3rem;font-size:0.925rem;line-height:1.5;border-radius:0.35rem;color:#ffffff;background-color:#009EF7;border:0px;margin-right:0.75rem!important;font-weight:600!important;outline:none!important;vertical-align:middle"
                                     target="_blank">Reset Password</a>
@@ -54,13 +54,13 @@
 
                             <!--end:Email content-->
                             <div style="padding-bottom: 10px">Sincerely,
-                                <br>Nifinspired Team.
+                                <br>Connectinskillz Team.
                 <tr>
                     <td style="font-size: 13px; text-align:center;padding: 20px; color: #6d6e7c;">
                         <p>United Kingdom.</p>
                         <p>Copyright ©
-                            <a href="https://nifinspired.com" rel="noopener"
-                                target="_blank">Nifinspired.com</a>.
+                            <a href="https://connectinskillz.com" rel="noopener"
+                                target="_blank">https://onnectinskillz.com</a>.
                         </p>
                     </td>
                 </tr>
