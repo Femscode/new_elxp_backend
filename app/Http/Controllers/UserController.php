@@ -194,7 +194,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'User deletion failed',
+                'message' => 'User status not updated',
                 'error' => $e->getMessage(),
             ], 500);
         }
