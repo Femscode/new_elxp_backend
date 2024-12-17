@@ -170,26 +170,34 @@ class UserController extends Controller
 
     public function change_role($id)
     {
-        $user = User::where('uuid', $id)->first();
-        if (!$user) {
+        try {
+            $user = User::where('uuid', $id)->first();
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User not found.',
+                ], 200);
+            }
+            if ($user->user_type == 'learners') {
+                $user->user_type = 'trainers';
+                $role = 'trainers';
+            } else {
+                $user->user_type = 'learners';
+                $role = 'learners';
+            }
+            $user->save();
+            return response()->json([
+                'status' => true,
+                'data' => $user,
+                'message' => 'User status and roles changed to ' . $role,
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not found.',
-            ], 200);
+                'message' => 'User deletion failed',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        if ($user->user_type == 'learners') {
-            $user->user_type = 'trainers';
-            $role = 'trainers';
-        } else {
-            $user->user_type = 'learners';
-            $role = 'learners';
-        }
-        $user->save();
-        return response()->json([
-            'status' => true,
-            'data' => $user,
-            'message' => 'User status and roles changed to ' . $role,
-        ], 200);
     }
 
     public function reset(Request $request)
