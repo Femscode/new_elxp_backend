@@ -28,6 +28,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/profile', [UserController::class, 'show'])->name('get-profile');
     Route::post('/profile/update', [UserController::class, 'update'])->name('update-profile');
     
+    Route::group(['prefix' => 'user'], function () {
+        Route::any('/change_role/{id}', [UserController::class, 'change_role'])->name('change_role');
+    });
+    
     
     Route::group(['prefix' => 'course'], function () {
         Route::post('/create', [CourseController::class, 'create'])->name('create-course');
