@@ -22,6 +22,12 @@ class UserController extends Controller
      */
     public function index()
     {
+        $users = User::latest()->get();
+        return response()->json([
+            'status' => true,
+            'message' => 'User created successfully',
+            'data' => $user,
+        ], 200);
         return UserResource::collection(User::all());
     }
 
