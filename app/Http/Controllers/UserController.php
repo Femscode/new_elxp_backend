@@ -25,7 +25,7 @@ class UserController extends Controller
         $users = User::latest()->get();
         return response()->json([
             'status' => true,
-            'message' => 'User created successfully',
+            'message' => 'User fetched successfully',
             'data' => $users,
         ], 200);
         return UserResource::collection(User::all());

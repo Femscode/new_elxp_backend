@@ -55,7 +55,7 @@ class CourseController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-               'course_id' => 'required'
+                'course_id' => 'required'
             ]);
 
             if ($validator->fails()) {
@@ -64,7 +64,7 @@ class CourseController extends Controller
                     'message' => $validator
                 ], 401);
             }
-          
+
             $user = Auth::user();
 
 
@@ -74,7 +74,7 @@ class CourseController extends Controller
             });
 
             $course = Course::where('uuid', $request->course_id)->firstOrFail();
-           
+
             $data['user_id'] = $data['instructor_id'] = $user->uuid;
             if ($request->has('image') && $request->image !== null) {
                 // Check if there is an existing image and delete it
@@ -118,14 +118,22 @@ class CourseController extends Controller
     }
     public function allcourses($userID)
     {
+        $course = Course::where('user_id', $userID)->first();
 
-        $course = Course::where('user_id', $userID)->firstOrFail();
+        if (!$course) {
+            return response()->json([
+                'status' => false,
+                'data' => null,
+                'message' => 'No courses found for the given user ID.',
+            ], 404);
+        }
         return response()->json([
             'status' => true,
             'data' => $course,
-            'message' => 'Course Detailes Fetched Successfully!'
+            'message' => 'Course details fetched successfully!',
         ], 200);
     }
+
     public function delete($courseId)
     {
 
