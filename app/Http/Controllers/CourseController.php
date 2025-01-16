@@ -18,8 +18,8 @@ class CourseController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'title' => 'required',
-                'description' => 'required',
-                'price' => 'required',
+                // 'description' => 'required',
+                // 'price' => 'required',
             ]);
 
             if ($validator->fails()) {
@@ -37,6 +37,7 @@ class CourseController extends Controller
                 $image->move(public_path('/courseImages'), $imageName);
                 $data['image'] = $imageName;
             }
+            $data['course_code'] = strtoupper(substr($request->title, 0, 3)) . '-' . Str::upper(Str::random(5));
 
             $course = Course::create($data);
             return response()->json([
