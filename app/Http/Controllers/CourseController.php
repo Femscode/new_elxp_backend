@@ -119,7 +119,7 @@ class CourseController extends Controller
     }
     public function allcourses($userID)
     {
-        $course = Course::where('user_id', $userID)->first();
+        $course = Course::where('user_id', $userID)->get();
 
         if (!$course) {
             return response()->json([
