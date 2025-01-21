@@ -138,6 +138,7 @@ class UserController extends Controller
             }
             $user = User::find($user->id);
             $user->update($data);
+            $user->refresh();
             return response()->json([
                 'status' => true,
                 'message' => 'User Updated successfully',
