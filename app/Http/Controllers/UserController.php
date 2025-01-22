@@ -120,7 +120,7 @@ class UserController extends Controller
         try {
 
             $user = Auth::user();
-            return $user;
+           
 
             $data = $request->except(['file', 'image', 'email']);
             //Attempt to updte the user
@@ -138,6 +138,7 @@ class UserController extends Controller
                 $data['image'] = $imageName;
             }
             $user = User::find($user->id);
+            return $data;
             $user->update($data);
             $user->refresh();
             return response()->json([
