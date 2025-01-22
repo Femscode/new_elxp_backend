@@ -91,12 +91,15 @@ class CourseController extends Controller
                 $data['image'] = $imageName;
             }
 
+            $data = array_filter($data, function ($value) {
+                return !is_null($value);
+            });
 
 
             $course->update($data);
             return response()->json([
                 'status' => true,
-                'data' => $course,
+                'data' => $course->refresh(),
                 'message' => 'Course Updated Successfully!'
             ], 200);
         } catch (\Exception $e) {
