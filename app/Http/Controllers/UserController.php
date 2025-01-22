@@ -120,8 +120,9 @@ class UserController extends Controller
         try {
 
             $user = Auth::user();
+            return $user;
 
-            $data = $request->except(['file', 'image']);
+            $data = $request->except(['file', 'image', 'email']);
             //Attempt to updte the user
             if ($request->has('image') && $request->image !== null) {
                 // Check if there is an existing image and delete it
