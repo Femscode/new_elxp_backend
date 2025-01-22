@@ -138,7 +138,10 @@ class UserController extends Controller
                 $data['image'] = $imageName;
             }
             $user = User::find($user->id);
-            return $data;
+           
+            $data = array_filter($data, function ($value) {
+                return !is_null($value);
+            });
             $user->update($data);
             $user->refresh();
             return response()->json([
