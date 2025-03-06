@@ -39,7 +39,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/view/{id}', [CourseController::class, 'view'])->name('view-course');
         Route::get('/allcourses/{id}', [CourseController::class, 'allcourses'])->name('all-courses-by-user');
         Route::delete('/delete/{id}', [CourseController::class, 'delete'])->name('delete-course');
-        Route::delete('/fetchContent/{id}', [CourseController::class, 'fetchCourseContent'])->name('fetch-course-content');
+        Route::get('/fetchContent/{id}', [CourseController::class, 'fetchCourseContent'])->name('fetch-course-content');
     });
     Route::group(['prefix' => 'section'], function () {
         Route::post('/create', [CourseController::class, 'createSection'])->name('create-section');
