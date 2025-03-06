@@ -10,4 +10,14 @@ class Content extends Model
     use HasFactory;
     protected $guarded = [];
     protected $table = 'contents';
+
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class, 'course_id', 'uuid');
+    }
 }
