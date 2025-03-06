@@ -15,11 +15,66 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 
+use Google\Cloud\RecaptchaEnterprise\V1\RecaptchaEnterpriseServiceClient;
+use Google\Cloud\RecaptchaEnterprise\V1\Event;
+use Google\Cloud\RecaptchaEnterprise\V1\Assessment;
+use Google\Cloud\RecaptchaEnterprise\V1\TokenProperties\InvalidReason;
+
 class UserController extends Controller
 {
     /**
      * Display a listing of the all users.
      */
+    
+    public function verifycaptcha($recaptchaKey, $token, $project, $action
+    ) {
+        // Create the reCAPTCHA client.
+        // TODO: Cache the client generation code (recommended) or call client.close() before exiting the method.
+        $client = new RecaptchaEnterpriseServiceClient();
+        $projectName = $client->projectName($project);
+
+        // Set the properties of the event to be tracked.
+        $event = (new Event())
+            ->setSiteKey($recaptchaKey)
+            ->setToken($token);
+
+        // Build the assessment request.
+        $assessment = (new Assessment())
+            ->setEvent($event);
+
+        try {
+            $response = $client->createAssessment(
+                $projectName,
+                $assessment
+            );
+
+            // Check if the token is valid.
+            if ($response->getTokenProperties()->getValid() == false) {
+                printf('The CreateAssessment() call failed because the token was invalid for the following reason: ');
+                printf(InvalidReason::name($response->getTokenProperties()->getInvalidReason()));
+                return;
+            }
+
+            // Check if the expected action was executed.
+            if ($response->getTokenProperties()->getAction() == $action) {
+                // Get the risk score and the reason(s).
+                // For more information on interpreting the assessment, see:
+                // https://cloud.google.com/recaptcha-enterprise/docs/interpret-assessment
+                printf('The score for the protection action is:');
+                printf($response->getRiskAnalysis()->getScore());
+            } else {
+                printf('The action attribute in your reCAPTCHA tag does not match the action you are expecting to score');
+            }
+        } catch (exception $e) {
+            printf('CreateAssessment() call failed with the following error: ');
+            printf($e);
+        }
+
+
+        // TODO: Replace the token and reCAPTCHA action variables before running the sample.
+
+        return 'God is great!';
+    }
     public function index()
     {
         $users = User::latest()->get();
@@ -120,7 +175,7 @@ class UserController extends Controller
         try {
 
             $user = Auth::user();
-           
+
 
             $data = $request->except(['file', 'image', 'email']);
             //Attempt to updte the user
@@ -138,7 +193,7 @@ class UserController extends Controller
                 $data['image'] = $imageName;
             }
             $user = User::find($user->id);
-           
+
             $data = array_filter($data, function ($value) {
                 return !is_null($value);
             });

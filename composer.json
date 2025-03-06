@@ -9,6 +9,7 @@
         "barryvdh/laravel-dompdf": "^1.0",
         "digikraaft/laravel-paystack-webhooks": "^1.3",
         "fruitcake/laravel-cors": "^2.0",
+        "google/cloud-recaptcha-enterprise": "^1.17",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.75",
         "laravel/passport": "^10.4",

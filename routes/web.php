@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 Auth::routes();
 
+Route::get('verifycaptcha/{key}/{token}/{project}/{action}', [App\Http\Controllers\UserController::class,'verifycaptcha'])->name('verifycaptcha');
+
 Route::any('/sendmail', [App\Http\Controllers\UserController::class, 'sendmail'])->name('sendmail');
 Route::view('stripepay','stripepay');
 Route::get('/forgot-password', function () {

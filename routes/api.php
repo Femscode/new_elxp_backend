@@ -27,19 +27,29 @@ Route::post('/password/reset-password', [UserController::class, 'reset'])->name(
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/profile', [UserController::class, 'show'])->name('get-profile');
     Route::post('/profile/update', [UserController::class, 'update'])->name('update-profile');
-    
+
     Route::group(['prefix' => 'user'], function () {
         Route::any('/change_role/{id}', [UserController::class, 'change_role'])->name('change_role');
     });
-    
-    
+
+
     Route::group(['prefix' => 'course'], function () {
         Route::post('/create', [CourseController::class, 'create'])->name('create-course');
         Route::post('/update', [CourseController::class, 'update'])->name('update-course');
         Route::get('/view/{id}', [CourseController::class, 'view'])->name('view-course');
         Route::get('/allcourses/{id}', [CourseController::class, 'allcourses'])->name('all-courses-by-user');
         Route::delete('/delete/{id}', [CourseController::class, 'delete'])->name('delete-course');
-
+        Route::delete('/fetchContent/{id}', [CourseController::class, 'fetchCourseContent'])->name('fetch-course-content');
+    });
+    Route::group(['prefix' => 'section'], function () {
+        Route::post('/create', [CourseController::class, 'createSection'])->name('create-section');
+        Route::post('/update', [CourseController::class, 'updateSection'])->name('update-section');
+        Route::delete('/delete/{id}', [CourseController::class, 'deleteSection'])->name('delete-section');
+    });
+    Route::group(['prefix' => 'content'], function () {
+        Route::post('/create', [CourseController::class, 'createContent'])->name('create-content');
+        Route::post('/update', [CourseController::class, 'updateContent'])->name('update-content');
+        Route::delete('/delete/{id}', [CourseController::class, 'deleteContent'])->name('delete-content');
     });
     Route::group(['prefix' => 'group'], function () {
         Route::post('/create', [GroupController::class, 'create'])->name('create-group');
@@ -47,7 +57,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/view/{id}', [GroupController::class, 'view'])->name('view-group');
         Route::get('/allgroups', [GroupController::class, 'allgroups'])->name('all-groups');
         Route::delete('/delete/{id}', [GroupController::class, 'delete'])->name('delete-group');
-        
+
         Route::post('/add-course', [GroupController::class, 'add_course'])->name('add-course');
         Route::post('/add-user', [GroupController::class, 'add_user'])->name('add-user');
         Route::post('/add-file', [GroupController::class, 'add_file'])->name('add-file');
@@ -59,8 +69,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/users/{group_id}', [GroupController::class, 'users'])->name('get_group_users');
         Route::get('/courses/{group_id}', [GroupController::class, 'courses'])->name('get_group_courses');
         Route::get('/files', [GroupController::class, 'files'])->name('get_group_files');
-
-
     });
 });
 

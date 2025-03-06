@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CourseResource;
+use App\Models\Content;
 use App\Models\Course;
+use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -52,6 +54,193 @@ class CourseController extends Controller
             ], 401);
         }
     }
+    public function createSection(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+                'course_id' => 'required',
+
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator
+                ], 401);
+            }
+            $data = $request->all();
+            $section = Section::create($data);
+            return response()->json([
+                'status' => true,
+                'data' => $section,
+                'message' => 'Section Created Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+    public function updateSection(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'section_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator
+                ], 401);
+            }
+
+            $data = $request->all();
+            $data = array_filter($data, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
+
+            $section = Section::findOrFail($request->section_id);
+            $section->update($data);
+
+            return response()->json([
+                'status' => true,
+                'data' => $section->refresh(),
+                'message' => 'Section Updated Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+    public function deleteSection($sectionId)
+    {
+        try {
+            $section = Section::findOrFail($sectionId);
+            $section->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Section Deleted Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+
+    public function createContent(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $validator = Validator::make($request->all(), [
+                
+                'course_id' => 'required',
+                'section_id' => 'required',
+                'contentType' => 'required',
+                'data' => 'required'
+
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator
+                ], 401);
+            }
+            $data = $request->all();
+            $content = Content::create($data);
+            return response()->json([
+                'status' => true,
+                'data' => $content,
+                'message' => 'Content Created Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+    public function updateContent(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'content_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator
+                ], 401);
+            }
+
+            $data = $request->all();
+            $data = array_filter($data, function ($value) {
+                return !is_null($value) && $value !== '';
+            });
+
+            $content = Content::findOrFail($request->content_id);
+            $content->update($data);
+
+            return response()->json([
+                'status' => true,
+                'data' => $content->refresh(),
+                'message' => 'Content Updated Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+    public function deleteContent($contentId)
+    {
+        try {
+            $content = Content::findOrFail($contentId);
+            $content->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Content Deleted Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+    public function fetchCourseContent($courseId) {
+        $course = Course::with(['sections' => function($query) {
+            $query->with('contents');
+        }])->where('uuid', $courseId)->firstOrFail();
+       
+        return response()->json([
+            'status' => true,
+            'data' => $course,
+            'message' => 'Course Details Fetched Successfully!'
+        ], 200);
+    }
+
+    // ... existing code ...
     public function update(Request $request)
     {
         try {

@@ -17,4 +17,14 @@ class Course extends Model
         return 'uuid';
     }
 
+    public function sections()
+    {
+        return $this->hasMany(Section::class, 'course_id', 'uuid');
+    }
+
+    public function contents()
+    {
+        return $this->hasMany(Content::class, 'course_id', 'uuid');
+    }
+
 }
