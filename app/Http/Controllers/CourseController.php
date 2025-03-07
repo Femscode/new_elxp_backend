@@ -326,7 +326,7 @@ class CourseController extends Controller
             // Update course
             $course = Course::where('uuid', $courseId)->firstOrFail();
             $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
-
+            
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
                 $existingSectionIds = Section::where('course_id', $courseId)->pluck('id')->toArray();
