@@ -306,7 +306,7 @@ class CourseController extends Controller
         }
     }
 
-    public function newsaveCourseContent(Request $request) {
+    public function saveCourseContent(Request $request) {
         try {
             $validator = Validator::make($request->all(), [
                 'uuid' => 'required|string',
@@ -324,9 +324,10 @@ class CourseController extends Controller
             $courseId = $courseData['uuid'];
             
             // Update course
+           
             $course = Course::where('uuid', $courseId)->firstOrFail();
             $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
-
+            dd($courseData, $course);
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
                 $existingSectionIds = Section::where('course_id', $courseId)->pluck('id')->toArray();
@@ -385,7 +386,7 @@ class CourseController extends Controller
         }
     }
 
-    public function saveCourseContent(Request $request) {
+    public function newnewsaveCourseContent(Request $request) {
         try {
             $validator = Validator::make($request->all(), [
                 'uuid' => 'required|string',
