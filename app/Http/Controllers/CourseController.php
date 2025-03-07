@@ -249,6 +249,7 @@ class CourseController extends Controller
     public function saveCourseContent(Request $request) {
         try {
             $validator = Validator::make($request->all(), [
+                'uuid' => 'required',
                 'data' => 'required|array',
                 'data.uuid' => 'required|string',
                 'data.sections' => 'array'
