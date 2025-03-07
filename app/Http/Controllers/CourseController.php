@@ -329,10 +329,11 @@ class CourseController extends Controller
 
             // Update course
             $course = Course::where('uuid', $courseId)->firstOrFail();
-            // $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
+            $realdata = collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray();
+            return [$course, $realdata];
+            $course->update($realdata);
             
-            $course->update(collect($request->all())->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
-
+            
             return $course;
 
             if (isset($courseData['sections'])) {
