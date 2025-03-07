@@ -331,8 +331,6 @@ class CourseController extends Controller
                 $cleanedData = trim($courseData['data'], "'"); // Remove any surrounding quotes/apostrophes
                 $courseData = json_decode($cleanedData, true);
             }
-
-            dd($courseData);
             $course = Course::where('uuid', $courseId)->firstOrFail();
             $course->fill(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
             $course->save();
