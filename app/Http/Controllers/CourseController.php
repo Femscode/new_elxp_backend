@@ -336,7 +336,7 @@ class CourseController extends Controller
             return $courseData;
             
             
-            return $course;
+            return $request->data;
 
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
