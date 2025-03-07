@@ -327,6 +327,10 @@ class CourseController extends Controller
 
            
             // Update course
+            if (isset($courseData['data']) && is_string($courseData['data'])) {
+                $cleanedData = trim($courseData['data'], "'"); // Remove any surrounding quotes/apostrophes
+                $courseData = json_decode($cleanedData, true);
+            }
 
             dd($courseData);
             $course = Course::where('uuid', $courseId)->firstOrFail();
