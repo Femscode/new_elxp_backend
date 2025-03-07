@@ -198,6 +198,8 @@ class CourseController extends Controller
             });
 
             $content = Content::findOrFail($request->content_id);
+            $data = collect($data)->except(['content_id'])->toArray();
+            $data['id'] = $request->content_id;
             $content->update($data);
 
             return response()->json([
