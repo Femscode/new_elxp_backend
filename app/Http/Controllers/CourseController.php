@@ -100,7 +100,10 @@ class CourseController extends Controller
                 ], 401);
             }
 
-            $data = $request->all();
+            
+           
+            $data = collect($request->all())->except(['section_id'])->toArray();
+            $data['id'] = $request->section_id;
             $data = array_filter($data, function ($value) {
                 return !is_null($value) && $value !== '';
             });
@@ -240,6 +243,65 @@ class CourseController extends Controller
         ], 200);
     }
 
+
+    public function saveCourseContent(Request $request) {
+        try {
+            $validator = Validator::make($request->all(), [
+                'data' => 'required|array',
+                'data.uuid' => 'required|string',
+                'data.sections' => 'array'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()
+                ], 401);
+            }
+
+            $courseData = $request->data;
+            $courseId = $courseData['uuid'];
+            
+            // Update course
+            $course = Course::where('uuid', $courseId)->firstOrFail();
+            $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
+
+            if (isset($courseData['sections'])) {
+                foreach ($courseData['sections'] as $sectionData) {
+                    $section = Section::updateOrCreate(
+                        ['id' => $sectionData['id'] ?? null],
+                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
+                    );
+
+                    if (isset($sectionData['contents'])) {
+                        foreach ($sectionData['contents'] as $contentData) {
+                            Content::updateOrCreate(
+                                ['id' => $contentData['id'] ?? null],
+                                collect($contentData)->except(['created_at', 'updated_at'])->toArray()
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Fetch updated course with relations
+            $updatedCourse = Course::with(['sections' => function($query) {
+                $query->with('contents');
+            }])->where('uuid', $courseId)->firstOrFail();
+
+            return response()->json([
+                'status' => true,
+                'data' => $updatedCourse,
+                'message' => 'Course Content Updated Successfully!'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
     // ... existing code ...
     public function update(Request $request)
     {

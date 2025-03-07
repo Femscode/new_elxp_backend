@@ -40,6 +40,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/allcourses/{id}', [CourseController::class, 'allcourses'])->name('all-courses-by-user');
         Route::delete('/delete/{id}', [CourseController::class, 'delete'])->name('delete-course');
         Route::get('/fetchContent/{id}', [CourseController::class, 'fetchCourseContent'])->name('fetch-course-content');
+        Route::get('/saveContent/{id}', [CourseController::class, 'saveCourseContent'])->name('save-course-content');
     });
     Route::group(['prefix' => 'section'], function () {
         Route::post('/create', [CourseController::class, 'createSection'])->name('create-section');
