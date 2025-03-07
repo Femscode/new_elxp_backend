@@ -327,6 +327,7 @@ class CourseController extends Controller
 
             // Update course
 
+            dd($courseData);
             $course = Course::where('uuid', $courseId)->firstOrFail();
             $course->fill(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
             $course->save();
