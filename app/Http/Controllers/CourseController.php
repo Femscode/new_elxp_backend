@@ -284,7 +284,7 @@ class CourseController extends Controller
                 foreach ($courseData['sections'] as $sectionData) {
                     $section = Section::updateOrCreate(
                         ['id' => $sectionData['id'] ?? null, 'course_id' => $course->uuid], // Ensure correct course_id
-                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
+                        collect($sectionData)->except(['contents', 'created_at', 'updated_at','id'])->toArray()
                     );
 
                     $updatedSectionIds[] = $section->id;
