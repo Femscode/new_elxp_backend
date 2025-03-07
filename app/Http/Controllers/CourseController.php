@@ -248,7 +248,7 @@ class CourseController extends Controller
 
 
 
-    public function oldsaveCourseContent(Request $request)
+    public function saveCourseContent(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -334,7 +334,7 @@ class CourseController extends Controller
         }
     }
 
-    public function saveCourseContent(Request $request)
+    public function newsaveCourseContent(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
