@@ -322,8 +322,10 @@ class CourseController extends Controller
 
             $courseData = $request->all();
             $courseId = $courseData['uuid'];
+            $jsonString = str_replace(["\n", "\r", "\t"], '', $courseData['data']);
+            $jsonString = preg_replace('/\s+/', ' ', $jsonString);
 
-            $courseDetails = json_decode($courseData['data'], true);
+            $courseDetails = json_decode($jsonString, true);
             dd($courseDetails);
             
             // Update course
