@@ -10,6 +10,8 @@ class Section extends Model
     use HasFactory;
     protected $guarded = [];
     protected $table = 'sections';
+
+    protected $hidden = ['created_at', 'updated_at'];
     public function course()
     {
         return $this->belongsTo(Course::class, 'course_id', 'uuid');

@@ -11,6 +11,7 @@ class Course extends Model
     protected $guarded = [];
     protected $fillable = ['title', 'description', 'price','image', 'course_code','user_id', 'instructor_id','status','uuid'];
     protected $table = 'courses';
+    protected $hidden = ['created_at', 'updated_at'];
 
     public function getRouteKeyName()
     {

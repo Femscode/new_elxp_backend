@@ -247,71 +247,12 @@ class CourseController extends Controller
     }
 
 
-    public function oldsaveCourseContent(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-
-                'data' => 'required|array',
-                'data.uuid' => 'required|string',
-                'data.sections' => 'array'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()
-                ], 401);
-            }
-
-            $courseData = $request->data;
-            $courseId = $courseData['uuid'];
-
-            // Update course
-            $course = Course::where('uuid', $courseId)->firstOrFail();
-            $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
-
-            if (isset($courseData['sections'])) {
-                foreach ($courseData['sections'] as $sectionData) {
-                    $section = Section::updateOrCreate(
-                        ['id' => $sectionData['id'] ?? null],
-                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
-                    );
-
-                    if (isset($sectionData['contents'])) {
-                        foreach ($sectionData['contents'] as $contentData) {
-                            Content::updateOrCreate(
-                                ['id' => $contentData['id'] ?? null],
-                                collect($contentData)->except(['created_at', 'updated_at'])->toArray()
-                            );
-                        }
-                    }
-                }
-            }
-
-            // Fetch updated course with relations
-            $updatedCourse = Course::with(['sections' => function ($query) {
-                $query->with('contents');
-            }])->where('uuid', $courseId)->firstOrFail();
-
-            return response()->json([
-                'status' => true,
-                'data' => $updatedCourse,
-                'message' => 'Course Content Updated Successfully!'
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-            ], 401);
-        }
-    }
 
     public function saveCourseContent(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'uuid' => 'required|string',
+                'course_id' => 'required|string',
                 'sections' => 'array'
             ]);
 
@@ -323,16 +264,16 @@ class CourseController extends Controller
             }
 
             $courseData = $request->all();
-            $courseId = $courseData['uuid'];
+            $courseId = $courseData['course_id'];
 
-           
+
             // Update course
             if (isset($courseData['data']) && is_string($courseData['data'])) {
                 $cleanedData = trim($courseData['data'], "'"); // Remove any surrounding quotes/apostrophes
                 $courseData = json_decode($cleanedData, true);
             }
             $course = Course::where('uuid', $courseId)->firstOrFail();
-           
+
             $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
 
             if (isset($courseData['sections'])) {
@@ -394,91 +335,6 @@ class CourseController extends Controller
     }
 
 
-    public function newnewsaveCourseContent(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'uuid' => 'required|string',
-                'sections' => 'array'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()
-                ], 401);
-            }
-
-            $courseData = $request->all();
-            $courseId = $courseData['uuid'];
-
-            // Update course
-            $course = Course::where('uuid', $courseId)->firstOrFail();
-            $course->title = $courseData['title'];
-            $course->description = $courseData['description'];
-            $course->course_code = $courseData['course_code'];
-            $course->price = $courseData['price'];
-            $course->category_id = $courseData['category_id'];
-            $course->status = $courseData['status'];
-            $course->save();
-
-            if (isset($courseData['sections'])) {
-                $updatedSectionIds = [];
-
-                foreach ($courseData['sections'] as $sectionData) {
-                    $section = Section::firstOrNew(['id' => $sectionData['id'] ?? null]);
-                    $section->course_id = $courseId;
-                    $section->name = $sectionData['name'];
-                    $section->contentType = $sectionData['contentType'];
-                    $section->save();
-
-                    $updatedSectionIds[] = $section->id;
-
-                    if (isset($sectionData['contents'])) {
-                        $updatedContentIds = [];
-
-                        foreach ($sectionData['contents'] as $contentData) {
-                            $content = Content::firstOrNew(['id' => $contentData['id'] ?? null]);
-                            $content->course_id = $courseId;
-                            $content->section_id = $section->id;
-                            $content->title = $contentData['title'];
-                            $content->contentType = $contentData['contentType'];
-                            $content->data = $contentData['data'];
-                            $content->save();
-
-                            $updatedContentIds[] = $content->id;
-                        }
-
-                        // Delete contents that are no longer in the updated data
-                        Content::where('section_id', $section->id)
-                            ->whereNotIn('id', $updatedContentIds)
-                            ->delete();
-                    }
-                }
-
-                // Delete sections that are no longer in the updated data
-                Section::where('course_id', $courseId)
-                    ->whereNotIn('id', $updatedSectionIds)
-                    ->delete();
-            }
-
-            // Fetch updated course with relations
-            $updatedCourse = Course::with(['sections' => function ($query) {
-                $query->with('contents');
-            }])->where('uuid', $courseId)->firstOrFail();
-
-            return response()->json([
-                'status' => true,
-                'data' => $updatedCourse,
-                'message' => 'Course Content Updated Successfully!'
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-            ], 401);
-        }
-    }
     // ... existing code ...
     public function update(Request $request)
     {
