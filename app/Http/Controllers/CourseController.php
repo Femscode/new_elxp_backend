@@ -325,6 +325,10 @@ class CourseController extends Controller
             $courseData = $request->all();
             $courseId = $courseData['uuid'];
 
+            if (isset($courseData['data']) && is_string($courseData['data'])) {
+                $cleanedData = trim($courseData['data'], "'"); // Remove any surrounding quotes/apostrophes
+                $courseData = json_decode($cleanedData, true);
+            }
             // Update course
 
             dd($courseData);
