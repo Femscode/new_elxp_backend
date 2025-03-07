@@ -322,6 +322,8 @@ class CourseController extends Controller
 
             $courseData = $request->data;
             $courseId = $request->uuid;
+
+            return $courseData;
             
             // Update course
             $course = Course::where('uuid', $courseId)->firstOrFail();
