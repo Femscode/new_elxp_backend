@@ -334,7 +334,7 @@ class CourseController extends Controller
             $course->update($realdata);
             
             
-            return $course;
+            return $realdata;
 
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
