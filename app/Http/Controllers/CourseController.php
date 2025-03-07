@@ -322,6 +322,9 @@ class CourseController extends Controller
 
             $courseData = $request->all();
             $courseId = $courseData['uuid'];
+
+            $courseDetails = json_decode($courseData['data'], true);
+            dd($courseDetails);
             
             // Update course
            
