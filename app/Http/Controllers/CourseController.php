@@ -312,77 +312,71 @@ class CourseController extends Controller
                 'uuid' => 'required|string',
                 'sections' => 'array'
             ]);
-
+    
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
                     'message' => $validator->errors()
                 ], 401);
             }
-
+    
             $courseData = $request->all();
             $courseId = $courseData['uuid'];
-            $jsonString = str_replace(["\n", "\r", "\t"], '', $courseData['data']);
-            $jsonString = preg_replace('/\s+/', ' ', $jsonString);
-
-            $courseDetails = json_decode($jsonString, true);
-            dd($courseDetails);
-            
+    
             // Update course
-           
             $course = Course::where('uuid', $courseId)->firstOrFail();
             $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
-            dd($courseData, $course);
+    
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
-                $existingSectionIds = Section::where('course_id', $courseId)->pluck('id')->toArray();
+                $existingSectionIds = Section::where('course_id', $course->id)->pluck('id')->toArray();
                 $updatedSectionIds = [];
-
+    
                 foreach ($courseData['sections'] as $sectionData) {
                     $section = Section::updateOrCreate(
-                        ['id' => $sectionData['id'] ?? null],
+                        ['id' => $sectionData['id'] ?? null, 'course_id' => $course->id], // Ensure correct course_id
                         collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
                     );
-                    
+    
                     $updatedSectionIds[] = $section->id;
-
+    
                     if (isset($sectionData['contents'])) {
                         // Get existing content IDs for this section
                         $existingContentIds = Content::where('section_id', $section->id)->pluck('id')->toArray();
                         $updatedContentIds = [];
-
+    
                         foreach ($sectionData['contents'] as $contentData) {
                             $content = Content::updateOrCreate(
-                                ['id' => $contentData['id'] ?? null],
+                                ['id' => $contentData['id'] ?? null, 'section_id' => $section->id], // Ensure correct section_id
                                 collect($contentData)->except(['created_at', 'updated_at'])->toArray()
                             );
                             $updatedContentIds[] = $content->id;
                         }
-
+    
                         // Delete contents that are no longer in the updated data
                         Content::where('section_id', $section->id)
                               ->whereNotIn('id', $updatedContentIds)
                               ->delete();
                     }
                 }
-
+    
                 // Delete sections that are no longer in the updated data
-                Section::where('course_id', $courseId)
+                Section::where('course_id', $course->id)
                       ->whereNotIn('id', $updatedSectionIds)
                       ->delete();
             }
-
+    
             // Fetch updated course with relations
             $updatedCourse = Course::with(['sections' => function($query) {
                 $query->with('contents');
             }])->where('uuid', $courseId)->firstOrFail();
-
+    
             return response()->json([
                 'status' => true,
                 'data' => $updatedCourse,
                 'message' => 'Course Content Updated Successfully!'
             ], 200);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -390,6 +384,7 @@ class CourseController extends Controller
             ], 401);
         }
     }
+    
 
     public function newnewsaveCourseContent(Request $request) {
         try {
