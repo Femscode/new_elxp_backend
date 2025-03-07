@@ -332,9 +332,8 @@ class CourseController extends Controller
                 $courseData = json_decode($cleanedData, true);
             }
             $course = Course::where('uuid', $courseId)->firstOrFail();
-            $course->fill(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
-            $course->save();
-            // $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
+           
+            $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
 
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
@@ -343,7 +342,7 @@ class CourseController extends Controller
 
                 foreach ($courseData['sections'] as $sectionData) {
                     $section = Section::updateOrCreate(
-                        ['id' => $sectionData['id'] ?? null, 'course_id' => $course->id], // Ensure correct course_id
+                        ['id' => $sectionData['id'] ?? null, 'course_id' => $course->uuid], // Ensure correct course_id
                         collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
                     );
 
@@ -351,12 +350,12 @@ class CourseController extends Controller
 
                     if (isset($sectionData['contents'])) {
                         // Get existing content IDs for this section
-                        $existingContentIds = Content::where('section_id', $section->id)->pluck('id')->toArray();
+                        $existingContentIds = Content::where('section_id', $section->id)->where('course_id', $course->uuid)->pluck('id')->toArray();
                         $updatedContentIds = [];
 
                         foreach ($sectionData['contents'] as $contentData) {
                             $content = Content::updateOrCreate(
-                                ['id' => $contentData['id'] ?? null, 'section_id' => $section->id], // Ensure correct section_id
+                                ['id' => $contentData['id'] ?? null, 'section_id' => $section->id, 'course_id' => $course->uuid], // Ensure correct section_id
                                 collect($contentData)->except(['created_at', 'updated_at'])->toArray()
                             );
                             $updatedContentIds[] = $content->id;
@@ -364,6 +363,7 @@ class CourseController extends Controller
 
                         // Delete contents that are no longer in the updated data
                         Content::where('section_id', $section->id)
+                            ->where('course_id', $course->uuid)
                             ->whereNotIn('id', $updatedContentIds)
                             ->delete();
                     }
