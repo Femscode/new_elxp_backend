@@ -248,7 +248,7 @@ class CourseController extends Controller
 
 
 
-    public function saveCourseContent(Request $request)
+    public function oldsaveCourseContent(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -284,7 +284,7 @@ class CourseController extends Controller
                 foreach ($courseData['sections'] as $sectionData) {
                     $section = Section::updateOrCreate(
                         ['id' => $sectionData['id'] ?? null, 'course_id' => $course->uuid], // Ensure correct course_id
-                        collect($sectionData)->except(['contents', 'created_at', 'updated_at','id'])->toArray()
+                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
                     );
 
                     $updatedSectionIds[] = $section->id;
@@ -334,6 +334,123 @@ class CourseController extends Controller
         }
     }
 
+    public function saveCourseContent(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'course_id' => 'required|string',
+                'sections' => 'array'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()
+                ], 401);
+            }
+
+            $courseData = $request->all();
+            $courseId = $courseData['course_id'];
+
+            // Parse JSON data if it exists
+            if (isset($courseData['data']) && is_string($courseData['data'])) {
+                $cleanedData = trim($courseData['data'], "'");
+                $courseData = json_decode($cleanedData, true);
+                
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid JSON data: ' . json_last_error_msg()
+                    ], 400);
+                }
+            }
+
+            $course = Course::where('uuid', $courseId)->firstOrFail();
+            $course->update(collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray());
+
+            if (isset($courseData['sections'])) {
+                $updatedSectionIds = [];
+
+                foreach ($courseData['sections'] as $sectionData) {
+                    if (isset($sectionData['id'])) {
+                        // Update existing section
+                        $section = Section::where('id', $sectionData['id'])
+                                        ->where('course_id', $course->id)
+                                        ->firstOrFail();
+                        $section->update(collect($sectionData)
+                                ->except(['contents', 'created_at', 'updated_at'])
+                                ->toArray());
+                    } else {
+                        // Create new section
+                        $section = Section::create(array_merge(
+                            collect($sectionData)
+                                ->except(['contents', 'created_at', 'updated_at'])
+                                ->toArray(),
+                            ['course_id' => $course->id]
+                        ));
+                    }
+                    
+                    $updatedSectionIds[] = $section->id;
+
+                    // Handle contents for this section
+                    if (isset($sectionData['contents'])) {
+                        $updatedContentIds = [];
+
+                        foreach ($sectionData['contents'] as $contentData) {
+                            if (isset($contentData['id'])) {
+                                // Update existing content
+                                $content = Content::where('id', $contentData['id'])
+                                                ->where('section_id', $section->id)
+                                                ->firstOrFail();
+                                $content->update(collect($contentData)
+                                        ->except(['created_at', 'updated_at'])
+                                        ->toArray());
+                            } else {
+                                // Create new content
+                                $content = Content::create(array_merge(
+                                    collect($contentData)
+                                        ->except(['created_at', 'updated_at'])
+                                        ->toArray(),
+                                    [
+                                        'section_id' => $section->id,
+                                        'course_id' => $course->id
+                                    ]
+                                ));
+                            }
+                            $updatedContentIds[] = $content->id;
+                        }
+
+                        // Delete contents that are no longer in the updated data
+                        Content::where('section_id', $section->id)
+                              ->whereNotIn('id', $updatedContentIds)
+                              ->delete();
+                    }
+                }
+
+                // Delete sections that are no longer in the updated data
+                Section::where('course_id', $course->id)
+                      ->whereNotIn('id', $updatedSectionIds)
+                      ->delete();
+            }
+
+            // Fetch updated course with relations
+            $updatedCourse = Course::with(['sections' => function ($query) {
+                $query->with('contents');
+            }])->where('uuid', $courseId)->firstOrFail();
+
+            return response()->json([
+                'status' => true,
+                'data' => $updatedCourse,
+                'message' => 'Course Content Updated Successfully!'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
 
     // ... existing code ...
     public function update(Request $request)
