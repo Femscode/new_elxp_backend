@@ -320,7 +320,7 @@ class CourseController extends Controller
                 ], 401);
             }
 
-            $courseData = $request->data;
+            $courseData = $request->all();
             $courseId = $courseData['uuid'];
             
             // Update course
