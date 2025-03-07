@@ -329,6 +329,7 @@ class CourseController extends Controller
 
             // Update course
             $course = Course::where('uuid', $courseId)->firstOrFail();
+            $courseData = json_decode($request->data, true);
             $realdata = collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray();
             return [$course, $realdata];
             $course->update($realdata);
