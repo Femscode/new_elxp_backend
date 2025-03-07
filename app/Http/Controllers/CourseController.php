@@ -333,10 +333,11 @@ class CourseController extends Controller
             $realdata = collect($courseData)->except(['sections', 'id', 'created_at', 'updated_at'])->toArray();
             $course->update($realdata);
 
+
+            return $request->data;
             return $courseData;
             
             
-            return $request->all();
 
             if (isset($courseData['sections'])) {
                 // Get existing section IDs for this course
