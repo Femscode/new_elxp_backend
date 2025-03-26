@@ -45,13 +45,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::group(['prefix' => 'section'], function () {
         Route::post('/create', [CourseController::class, 'createSection'])->name('create-section');
         Route::post('/update', [CourseController::class, 'updateSection'])->name('update-section');
-        Route::post('/fetch/{id}', [CourseController::class, 'fetchSection'])->name('fetch-section');
+        Route::get('/fetch/{id}', [CourseController::class, 'fetchSection'])->name('fetch-section');
         Route::delete('/delete/{id}', [CourseController::class, 'deleteSection'])->name('delete-section');
     });
     Route::group(['prefix' => 'content'], function () {
         Route::post('/create', [CourseController::class, 'createContent'])->name('create-content');
         Route::post('/update', [CourseController::class, 'updateContent'])->name('update-content');
-        Route::post('/fetch/{id}', [CourseController::class, 'fetchContent'])->name('fetch-content');
+        Route::get('/fetch/{id}', [CourseController::class, 'fetchContent'])->name('fetch-content');
         Route::delete('/delete/{id}', [CourseController::class, 'deleteContent'])->name('delete-content');
     });
     Route::group(['prefix' => 'group'], function () {
