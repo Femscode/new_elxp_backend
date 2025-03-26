@@ -86,6 +86,24 @@ class CourseController extends Controller
         }
     }
 
+    public function fetchSection($sectionId)
+    {
+        try {
+            $section = Section::with('contents')->findOrFail($sectionId);
+            
+            return response()->json([
+                'status' => true,
+                'data' => $section,
+                'message' => 'Section Details Fetched Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
     public function updateSection(Request $request)
     {
         try {
@@ -169,6 +187,24 @@ class CourseController extends Controller
                 'status' => true,
                 'data' => $content,
                 'message' => 'Content Created Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
+    public function fetchContent($contentId)
+    {
+        try {
+            $content = Content::findOrFail($contentId);
+            
+            return response()->json([
+                'status' => true,
+                'data' => $content,
+                'message' => 'Content Details Fetched Successfully!'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
