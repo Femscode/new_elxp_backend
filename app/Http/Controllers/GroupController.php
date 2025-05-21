@@ -317,7 +317,7 @@ class GroupController extends Controller
         try {
             
             $data['user_id'] = Auth::user()->id;
-            $groups = Group::with('groupusers')
+            $groups = Group::with('groupusers.users')
             ->withCount('groupusers')->find($group_id);
 
             return response()->json([
