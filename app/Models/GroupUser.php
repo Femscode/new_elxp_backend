@@ -12,6 +12,6 @@ class GroupUser extends Model
     protected $table = 'group_users';
 
     public function users() {
-        return $this->belongsTo(User::class, 'id','user_id');
+        return $this->hasMany(User::class, 'id','user_id');
     }
 }
