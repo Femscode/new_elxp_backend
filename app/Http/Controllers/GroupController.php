@@ -320,7 +320,8 @@ class GroupController extends Controller
         try {
             
             $data['user_id'] = Auth::user()->id;
-            $groups = Group::with('groupusers.users')->find($group_id);
+            $groups = Group::with('groupusers.users')
+            ->withCount('groupusers')->find($group_id);
 
             return response()->json([
                 'status' => true,
@@ -339,7 +340,8 @@ class GroupController extends Controller
         
         try {
             $data['user_id'] = Auth::user()->id;
-            $groups = Group::with('groupcourses.courses')->find($group_id);
+            $groups = Group::with('groupcourses.courses')
+            ->withCount('groupcourses')->find($group_id);
 
             return response()->json([
                 'status' => true,
