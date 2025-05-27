@@ -6,9 +6,12 @@ use App\Models\Group;
 use App\Models\GroupCourse;
 use App\Models\GroupUser;
 use App\Models\User;
+use App\Models\GroupFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 
 class GroupController extends Controller
 {
@@ -350,4 +353,142 @@ class GroupController extends Controller
             ], 401);
         }
     }
+
+    public function add_file(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'group_id' => 'required|exists:groups,id',
+            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,docx,txt|max:2048', // Adjust types if needed
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = Auth::user();
+
+            // Check group ownership
+            $group = Group::where('id', $request->group_id)
+                        ->where('user_id', $user->id)
+                        ->first();
+            // var_dump($group);
+
+            if (!$group) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Group not found or access denied.'
+                ], 403);
+            }
+
+            $data = $request->except(['file']);
+            $data['user_id'] = $user->id;
+            $data['group_id'] = $group->id;
+            $data['uuid'] = Str::uuid(); // Optional unique ID
+
+            // Handle the file upload
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileName = $file->hashName(); // Generates unique name
+                $file->move(public_path('/groupFiles'), $fileName);
+                $data['filename'] = $fileName;
+                $data['filepath'] = 'groupFiles/' . $fileName; // Relative path
+            }
+
+            // Save file record to database
+            $fileRecord = GroupFile::create($data);
+
+            return response()->json([
+                'status' => true,
+                'data' => $fileRecord,
+                'message' => 'File uploaded successfully!'
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function remove_file($group_id, $file_id)
+    {
+        try {
+            $user = Auth::user();
+
+            // Find the file with matching group, user, and file ID
+            $file = GroupFile::where('id', $file_id)
+                ->where('group_id', $group_id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$file) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'File not found or access denied.'
+                ], 404);
+            }
+
+            // Delete the physical file if it exists
+            $filePath = public_path($file->filepath);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+
+            // Delete the database record
+            $file->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'File deleted successfully.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function files($group_id)
+    {
+        try {
+            $user = Auth::user();
+
+            // Ensure the group belongs to the authenticated user
+            $group = Group::where('id', $group_id)
+                        ->where('user_id', $user->id)
+                        ->first();
+
+            if (!$group) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Group not found or access denied.'
+                ], 404);
+            }
+
+            // Get all files for the group
+            $files = GroupFile::where('group_id', $group_id)->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $files,
+                'message' => 'Files retrieved successfully.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

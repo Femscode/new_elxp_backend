@@ -71,7 +71,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/users/{group_id}', [GroupController::class, 'users'])->name('get_group_users');
         Route::get('/courses/{group_id}', [GroupController::class, 'courses'])->name('get_group_courses');
-        Route::get('/files', [GroupController::class, 'files'])->name('get_group_files');
+        Route::get('/files/{group_id}', [GroupController::class, 'files'])->name('get_group_files');
     });
 });
 

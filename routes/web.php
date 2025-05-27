@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
-Auth::routes();
+// Auth::routes();
 
 Route::get('verifycaptcha/{key}/{token}/{project}/{action}', [App\Http\Controllers\UserController::class,'verifycaptcha'])->name('verifycaptcha');
 

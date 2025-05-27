@@ -62,6 +62,8 @@ class CourseController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
                 'course_id' => 'required',
+                //  'contentType'=> 'text'
+
 
             ]);
 
@@ -274,6 +276,8 @@ class CourseController extends Controller
         $course = Course::with(['sections' => function ($query) {
             $query->with('contents');
         }])->where('uuid', $courseId)->firstOrFail();
+
+   
 
         return response()->json([
             'status' => true,

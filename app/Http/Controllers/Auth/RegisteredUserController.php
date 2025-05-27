@@ -162,6 +162,12 @@ class RegisteredUserController extends Controller
 
             // Create the user
             $user = User::where('uuid',$request->uuid)->first();
+
+            // If user doesn't exist, return error
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], 404); // User not found
+            }
+
             $user->password = Hash::make($request->password);
             $user->save();
           
