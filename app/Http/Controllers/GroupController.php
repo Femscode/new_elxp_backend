@@ -643,13 +643,16 @@ class GroupController extends Controller
             // Handle the file upload
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
+                // Get file size and type before moving
+                $fileSize = $file->getSize(); // File size in bytes
+                $fileType = $file->getClientMimeType(); // File MIME type
                 $originalFileName = $file->getClientOriginalName(); // Get original filename
-                $fileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension(); // Append timestamp to avoid overwrites
+                $fileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension(); // Append timestamp
                 $file->move(public_path('/groupFiles'), $fileName);
                 $data['filename'] = $fileName;
                 $data['filepath'] = 'groupFiles/' . $fileName;
-                $data['file_size'] = $file->getSize(); // File size in bytes
-                $data['file_type'] = $file->getClientMimeType(); // File MIME type
+                $data['file_size'] = $fileSize;
+                $data['file_type'] = $fileType;
             }
 
             // Save file record to database
