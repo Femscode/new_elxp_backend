@@ -235,8 +235,6 @@ class GroupController extends Controller
             ], 401);
         }
 
-        return $user_ids;
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
