@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\Group;
 use App\Models\GroupCourse;
+use App\Models\GroupFile;
 use App\Models\GroupUser;
 use App\Models\User;
-use App\Models\GroupFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -170,7 +171,7 @@ class GroupController extends Controller
         }
     }
 
-    public function add_user(Request $request)
+    public function oldadd_user(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required',
@@ -193,7 +194,7 @@ class GroupController extends Controller
                 ], 401);
             }
             $check_user = User::find($request->user_id);
-            if(!$check_user) {
+            if (!$check_user) {
                 return response()->json([
                     'status' => false,
                     'message' => "Id of user does not exist!"
@@ -214,11 +215,185 @@ class GroupController extends Controller
         }
     }
 
+
+    public function add_user(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'required|integer',
+            'group_id' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 401);
+        }
+
+        try {
+            $group_id = $request->group_id;
+            $added_users = [];
+            $failed_users = [];
+
+            foreach ($request->user_ids as $user_id) {
+                // Check if user exists
+                $check_user = User::find($user_id);
+                if (!$check_user) {
+                    $failed_users[] = [
+                        'user_id' => $user_id,
+                        'message' => 'User does not exist'
+                    ];
+                    continue;
+                }
+
+                // Check if user is already in group
+                $check = GroupUser::where('user_id', $user_id)
+                    ->where('group_id', $group_id)
+                    ->first();
+                if ($check) {
+                    $failed_users[] = [
+                        'user_id' => $user_id,
+                        'message' => 'User already in group'
+                    ];
+                    continue;
+                }
+
+                // Add user to group
+                $group_user = GroupUser::create([
+                    'user_id' => $user_id,
+                    'group_id' => $group_id
+                ]);
+
+                $added_users[] = $group_user;
+            }
+
+            $response = [
+                'status' => true,
+                'message' => 'Users processed successfully',
+                'data' => [
+                    'added_users' => $added_users,
+                    'failed_users' => $failed_users
+                ]
+            ];
+
+            // If no users were added successfully, return error
+            if (empty($added_users) && !empty($failed_users)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No users were added',
+                    'data' => [
+                        'added_users' => [],
+                        'failed_users' => $failed_users
+                    ]
+                ], 401);
+            }
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => [
+                    'added_users' => [],
+                    'failed_users' => []
+                ]
+            ], 401);
+        }
+    }
+
+    public function newadd_user(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required_without:course_id',
+            'group_id' => 'required',
+            // 'course_id' => 'required_without:user_id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 401);
+        }
+        try {
+            if ($request->has('course_id')) {
+                // Get the course
+                $course = Course::find($request->course_id);
+                if (!$course) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Course does not exist!"
+                    ], 401);
+                }
+
+                // Get all users who have purchased/enrolled in the course
+                // Since there's no direct enrollment table, we'll use the course's user_id
+                // This is a simplified approach - you may need to adjust based on your actual enrollment tracking
+                $enrolled_users = User::where('id', $course->user_id)->get();
+
+                $added_users = 0;
+                foreach ($enrolled_users as $user) {
+                    // Check if user is already in the group
+                    $check = GroupUser::where('user_id', $user->id)
+                        ->where('group_id', $request->group_id)
+                        ->first();
+
+                    if (!$check) {
+                        GroupUser::create([
+                            'user_id' => $user->id,
+                            'group_id' => $request->group_id
+                        ]);
+                        $added_users++;
+                    }
+                }
+
+                return response()->json([
+                    'status' => true,
+                    'message' => $added_users . ' users from course added to group Successfully!'
+                ], 200);
+            } else {
+                // Original single user add logic
+                $data = $request->all();
+                $check = GroupUser::where('user_id', $request->user_id)
+                    ->where('group_id', $request->group_id)
+                    ->first();
+
+                if ($check) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "This user has been added to group already"
+                    ], 401);
+                }
+
+                $check_user = User::find($request->user_id);
+                if (!$check_user) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => "Id of user does not exist!"
+                    ], 401);
+                }
+
+                $group_user = GroupUser::create($data);
+
+                return response()->json([
+                    'status' => true,
+                    'data' => $group_user,
+                    'message' => 'User added to group Successfully!'
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
+
     public function remove_user($group_id, $user_id)
     {
 
         try {
-           
+
             // Find the GroupUser record for the specified user and group
             $group_user = GroupUser::where('user_id', $user_id)
                 ->where('group_id', $group_id)
@@ -316,12 +491,12 @@ class GroupController extends Controller
 
     public function users($group_id)
     {
-        
+
         try {
-            
+
             $data['user_id'] = Auth::user()->id;
             $groups = Group::with('groupusers.users')
-            ->withCount('groupusers')->find($group_id);
+                ->withCount('groupusers')->find($group_id);
 
             return response()->json([
                 'status' => true,
@@ -337,11 +512,11 @@ class GroupController extends Controller
     }
     public function courses($group_id)
     {
-        
+
         try {
             $data['user_id'] = Auth::user()->id;
             $groups = Group::with('groupcourses.courses')
-            ->withCount('groupcourses')->find($group_id);
+                ->withCount('groupcourses')->find($group_id);
 
             return response()->json([
                 'status' => true,
@@ -375,8 +550,8 @@ class GroupController extends Controller
 
             // Check group ownership
             $group = Group::where('id', $request->group_id)
-                        ->where('user_id', $user->id)
-                        ->first();
+                ->where('user_id', $user->id)
+                ->first();
             // var_dump($group);
 
             if (!$group) {
@@ -408,7 +583,6 @@ class GroupController extends Controller
                 'data' => $fileRecord,
                 'message' => 'File uploaded successfully!'
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -449,7 +623,6 @@ class GroupController extends Controller
                 'status' => true,
                 'message' => 'File deleted successfully.'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -466,8 +639,8 @@ class GroupController extends Controller
 
             // Ensure the group belongs to the authenticated user
             $group = Group::where('id', $group_id)
-                        ->where('user_id', $user->id)
-                        ->first();
+                ->where('user_id', $user->id)
+                ->first();
 
             if (!$group) {
                 return response()->json([
@@ -484,7 +657,6 @@ class GroupController extends Controller
                 'data' => $files,
                 'message' => 'Files retrieved successfully.'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -492,5 +664,4 @@ class GroupController extends Controller
             ], 500);
         }
     }
-
 }
