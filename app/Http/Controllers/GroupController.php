@@ -17,8 +17,7 @@ use Illuminate\Support\Str;
 class GroupController extends Controller
 {
 
-    protected $live_public = 'https://elxp-backend.connectinskillz.com/new_elxp_files/public';;
-    
+
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -545,7 +544,7 @@ class GroupController extends Controller
         }
     }
 
-    public function add_file(Request $request)
+    public function oldadd_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'group_id' => 'required|exists:groups,id',
@@ -591,7 +590,6 @@ class GroupController extends Controller
 
             // Save file record to database
             $fileRecord = GroupFile::create($data);
-            $fileRecord['live_url'] = 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/groupFiles/' . $fileName; // Assuming you're using Laravel's public directory 
 
             return response()->json([
                 'status' => true,
@@ -605,6 +603,75 @@ class GroupController extends Controller
             ], 500);
         }
     }
+
+
+
+    public function add_file(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'group_id' => 'required|exists:groups,id',
+            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,docx,txt|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = Auth::user();
+
+            // Check group ownership
+            $group = Group::where('id', $request->group_id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$group) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Group not found or access denied.'
+                ], 403);
+            }
+
+            $data = $request->except(['file']);
+            $data['user_id'] = $user->id;
+            $data['group_id'] = $group->id;
+            $data['uuid'] = Str::uuid();
+
+            // Handle the file upload
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $originalFileName = $file->getClientOriginalName(); // Get original filename
+                $fileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension(); // Append timestamp to avoid overwrites
+                $file->move(public_path('/groupFiles'), $fileName);
+                $data['filename'] = $fileName;
+                $data['filepath'] = 'groupFiles/' . $fileName;
+                $data['file_size'] = $file->getSize(); // File size in bytes
+                $data['file_type'] = $file->getClientMimeType(); // File MIME type
+            }
+
+            // Save file record to database
+            $fileRecord = GroupFile::create($data);
+
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'file_record' => $fileRecord,
+                    'file_size' => $data['file_size'],
+                    'file_type' => $data['file_type']
+                ],
+                'message' => 'File uploaded successfully!'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 
     public function remove_file($group_id, $file_id)
@@ -664,11 +731,7 @@ class GroupController extends Controller
                 ], 404);
             }
 
-            $files = GroupFile::where('group_id', $group_id)->get()->map(function ($file) {
-
-                $file->live_url = $this->live_public . '/groupFiles/' . $file->filename;
-                return $file;
-            });
+            $files = GroupFile::where('group_id', $group_id)->get();
 
             return response()->json([
                 'status' => true,
