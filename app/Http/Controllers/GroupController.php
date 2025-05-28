@@ -247,7 +247,7 @@ class GroupController extends Controller
             $added_users = [];
             $failed_users = [];
 
-            foreach ($request->user_ids as $user_id) {
+            foreach ($user_ids as $user_id) {
                 // Check if user exists
                 $check_user = User::find($user_id);
                 if (!$check_user) {
