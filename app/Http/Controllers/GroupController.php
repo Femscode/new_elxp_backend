@@ -17,11 +17,8 @@ use Illuminate\Support\Str;
 class GroupController extends Controller
 {
 
-    protected $live_public;
-    public function __construct()
-    {
-        $live_public = 'https://elxp-backend.connectinskillz.com/new_elxp_files/public';
-    }
+    protected $live_public = 'https://elxp-backend.connectinskillz.com/new_elxp_files/public';;
+    
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
