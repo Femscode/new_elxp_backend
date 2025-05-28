@@ -18,6 +18,9 @@ class GroupFile extends Model
     'uuid',
     'filename',
     'filepath',
+    'name',
+    'file_type',
+    'file_size',
 ];
 
 }
