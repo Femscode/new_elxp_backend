@@ -16,6 +16,12 @@ use Illuminate\Support\Str;
 
 class GroupController extends Controller
 {
+
+    protected $live_public;
+    public function __construct()
+    {
+        $live_public = 'https://elxp-backend.connectinskillz.com/new_elxp_files/public';
+    }
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -218,10 +224,10 @@ class GroupController extends Controller
 
     public function add_user(Request $request)
     {
-     
+
         $validator = Validator::make($request->all(), [
             'user_ids' => 'required',
-           
+
             'group_id' => 'required|integer',
         ]);
 
@@ -588,6 +594,7 @@ class GroupController extends Controller
 
             // Save file record to database
             $fileRecord = GroupFile::create($data);
+            $fileRecord['live_url'] = 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/groupFiles/' . $fileName; // Assuming you're using Laravel's public directory 
 
             return response()->json([
                 'status' => true,
@@ -660,8 +667,11 @@ class GroupController extends Controller
                 ], 404);
             }
 
-            // Get all files for the group
-            $files = GroupFile::where('group_id', $group_id)->get();
+            $files = GroupFile::where('group_id', $group_id)->get()->map(function ($file) {
+
+                $file->live_url = $this->live_public . '/groupFiles/' . $file->filename;
+                return $file;
+            });
 
             return response()->json([
                 'status' => true,
