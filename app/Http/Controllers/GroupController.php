@@ -218,12 +218,24 @@ class GroupController extends Controller
 
     public function add_user(Request $request)
     {
-        return $request->all();
+     
         $validator = Validator::make($request->all(), [
-            'user_ids' => 'required|array',
-            'user_ids.*' => 'required|integer',
+            'user_ids' => 'required',
+           
             'group_id' => 'required|integer',
         ]);
+
+        $user_ids = $request->user_ids;
+        if (is_string($user_ids)) {
+            $user_ids = array_map('intval', array_filter(explode(',', $user_ids)));
+        } elseif (!is_array($user_ids)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'user_ids must be an array or comma-separated string'
+            ], 401);
+        }
+
+        return $user_ids;
 
         if ($validator->fails()) {
             return response()->json([
