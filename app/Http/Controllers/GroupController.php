@@ -218,6 +218,7 @@ class GroupController extends Controller
 
     public function add_user(Request $request)
     {
+        return $request->all();
         $validator = Validator::make($request->all(), [
             'user_ids' => 'required|array',
             'user_ids.*' => 'required|integer',
