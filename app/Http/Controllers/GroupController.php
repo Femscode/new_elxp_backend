@@ -606,6 +606,8 @@ class GroupController extends Controller
 
 
 
+
+
     public function add_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -647,10 +649,12 @@ class GroupController extends Controller
                 $fileSize = $file->getSize(); // File size in bytes
                 $fileType = $file->getClientMimeType(); // File MIME type
                 $originalFileName = $file->getClientOriginalName(); // Get original filename
-                $fileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension(); // Append timestamp
+                // Create unique filename with UUID
+                $fileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . Str::uuid() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('/groupFiles'), $fileName);
-                $data['filename'] = $fileName;
-                $data['filepath'] = 'groupFiles/' . $fileName;
+                $data['name'] = $originalFileName; // Store original filename
+                $data['filename'] = $fileName; // Store unique filename
+                $data['filepath'] = 'groupFiles/' . $fileName; // Store filepath
                 $data['file_size'] = $fileSize;
                 $data['file_type'] = $fileType;
             }
@@ -663,7 +667,8 @@ class GroupController extends Controller
                 'data' => [
                     'file_record' => $fileRecord,
                     'file_size' => $data['file_size'],
-                    'file_type' => $data['file_type']
+                    'file_type' => $data['file_type'],
+                    'original_name' => $data['name']
                 ],
                 'message' => 'File uploaded successfully!'
             ], 201);

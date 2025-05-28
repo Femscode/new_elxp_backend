@@ -20,6 +20,9 @@ class CreateGroupFilesTable extends Migration
             $table->unsignedBigInteger('group_id');
             $table->string('filename');
             $table->string('filepath');
+            $table->string('name');
+            $table->string('file_type');
+            $table->string('file_size');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
