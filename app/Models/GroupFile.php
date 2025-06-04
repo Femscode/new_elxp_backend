@@ -21,6 +21,7 @@ class GroupFile extends Model
     'name',
     'file_type',
     'file_size',
+    'created_at'
 ];
 
 }
