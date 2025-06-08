@@ -16,6 +16,7 @@ class GroupFile extends Model
     'group_id',
     'user_id',
     'uuid',
+    'link_url',
     'filename',
     'filepath',
     'name',

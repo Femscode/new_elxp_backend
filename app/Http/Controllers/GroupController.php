@@ -612,7 +612,8 @@ class GroupController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'group_id' => 'required|exists:groups,id',
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf,docx,txt|max:2048',
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,pdf,docx,txt|max:2048',
+            'link_url' => 'nullable|url'
         ]);
 
         if ($validator->fails()) {
@@ -642,35 +643,46 @@ class GroupController extends Controller
             $data['group_id'] = $group->id;
             $data['uuid'] = Str::uuid();
 
-            // Handle the file upload
-            if ($request->hasFile('file')) {
+            // If link_url is provided, skip file upload
+            if ($request->filled('link_url')) {
+                $data['name'] = basename($request->link_url); // You can choose how to store/display this
+                $data['link_url'] = $request->link_url;
+                $data['filename'] = 'link_' . Str::uuid(); 
+            } elseif ($request->hasFile('file')) {
                 $file = $request->file('file');
-                // Get file size and type before moving
-                $fileSize = $file->getSize(); // File size in bytes
-                $fileType = $file->getClientMimeType(); // File MIME type
-                $originalFileName = $file->getClientOriginalName(); // Get original filename
-                // Create unique filename with UUID
+                $fileSize = $file->getSize();
+                $fileType = $file->getClientMimeType();
+                $originalFileName = $file->getClientOriginalName();
+
                 $fileName = pathinfo($originalFileName, PATHINFO_FILENAME) . '_' . Str::uuid() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('/groupFiles'), $fileName);
-                $data['name'] = $originalFileName; // Store original filename
-                $data['filename'] = $fileName; // Store unique filename
-                $data['filepath'] = 'groupFiles/' . $fileName; // Store filepath
+
+                $data['name'] = $originalFileName;
+                $data['filename'] = $fileName;
+                $data['filepath'] = 'groupFiles/' . $fileName;
                 $data['file_size'] = $fileSize;
                 $data['file_type'] = $fileType;
+            } else {
+                // No file or link provided
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No file or link URL provided.'
+                ], 400);
             }
 
-            // Save file record to database
             $fileRecord = GroupFile::create($data);
 
             return response()->json([
                 'status' => true,
                 'data' => [
                     'file_record' => $fileRecord,
-                    'file_size' => $data['file_size'],
-                    'file_type' => $data['file_type'],
+                    'file_size' => $data['file_size'] ?? null,
+                    'file_type' => $data['file_type'] ?? null,
                     'original_name' => $data['name']
                 ],
-                'message' => 'File uploaded successfully!'
+                'message' => $request->filled('link_url') 
+                    ? 'Link saved successfully!' 
+                    : 'File uploaded successfully!'
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -679,6 +691,7 @@ class GroupController extends Controller
             ], 500);
         }
     }
+
 
 
 
