@@ -10,7 +10,7 @@ class GroupFile extends Model
     use HasFactory;
     protected $guarded = [];
     protected $table = 'group_files';
-    protected $hidden = ['created_at', 'updated_at'];
+    // protected $hidden = ['created_at', 'updated_at'];
 
     protected $fillable = [
     'group_id',
