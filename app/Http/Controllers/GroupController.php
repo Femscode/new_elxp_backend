@@ -714,10 +714,13 @@ class GroupController extends Controller
             }
 
             // Delete the physical file if it exists
-            $filePath = public_path($file->filepath);
-            if (file_exists($filePath)) {
-                unlink($filePath);
+            if (!empty($file->filepath)) {
+                $filePath = public_path($file->filepath);
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
             }
+
 
             // Delete the database record
             $file->delete();
