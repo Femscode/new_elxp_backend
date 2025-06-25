@@ -23,7 +23,7 @@ class DiscussionController extends Controller
                 'allowed_users.*' => 'exists:users,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'files' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-                'course_id' => 'required|exists:courses,id',
+                // 'course_id' => 'required|exists:courses,id',
             ]);
 
             if ($validator->fails()) {

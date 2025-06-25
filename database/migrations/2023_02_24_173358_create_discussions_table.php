@@ -15,10 +15,10 @@ class CreateDiscussionsTable extends Migration
     {
         Schema::create('discussions', function (Blueprint $table) {
             $table->id();
+            $table->string('uuid');
             $table->integer('course_id')->nullable();
             $table->string('user_id')->nullable();
             $table->string('title');
-            $table->string('uuid');
             $table->enum('visibility', ['public', 'private'])->default('public');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->json('allowed_users')->nullable();
