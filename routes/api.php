@@ -4,11 +4,13 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\GroupController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -54,6 +56,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/fetch/{id}', [CourseController::class, 'fetchContent'])->name('fetch-content');
         Route::delete('/delete/{id}', [CourseController::class, 'deleteContent'])->name('delete-content');
     });
+
+
     Route::group(['prefix' => 'group'], function () {
         Route::post('/create', [GroupController::class, 'create'])->name('create-group');
         Route::post('/update', [GroupController::class, 'update'])->name('update-group');
@@ -73,6 +77,20 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/courses/{group_id}', [GroupController::class, 'courses'])->name('get_group_courses');
         Route::get('/files/{group_id}', [GroupController::class, 'files'])->name('get_group_files');
     });
+});
+
+Route::group(['prefix' => 'discussions', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [DiscussionController::class, 'create'])->name('create-discussion');
+    Route::put('/update/{id}', [DiscussionController::class, 'update'])->name('update-discussion');
+    Route::delete('/delete/{id}', [DiscussionController::class, 'delete'])->name('delete-discussion');
+    Route::get('/course/{course_id}', [DiscussionController::class, 'fetchByCourse'])->name('fetch-discussions-by-course');
+});
+
+Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [DiscussionController::class, 'createReply'])->name('create-reply');
+    Route::put('/update/{id}', [DiscussionController::class, 'updateReply'])->name('update-reply');
+    Route::delete('/delete/{id}', [DiscussionController::class, 'deleteReply'])->name('delete-reply');
+    Route::get('/discussion/{discussion_id}', [DiscussionController::class, 'fetchByDiscussion'])->name('fetch-replies-by-discussion');
 });
 
 // User Management Route (Can be accessed with and without authentication)

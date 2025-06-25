@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDiscussionsTable extends Migration
+class CreateRepliesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,17 +13,15 @@ class CreateDiscussionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('discussions', function (Blueprint $table) {
+        Schema::create('replies', function (Blueprint $table) {
             $table->id();
-            $table->integer('course_id')->nullable();
-            $table->string('user_id')->nullable();
-            $table->string('title');
-            $table->string('uuid');
-            $table->enum('visibility', ['public', 'private'])->default('public');
+            $table->foreignId('discussion_id')->constrained()->onDelete('cascade');
+            $table->foreignId('parent_reply_id')->nullable()->constrained('replies')->onDelete('cascade');
+            $table->text('body');
+            $table->string('title')->nullable();
+            $table->string('uuid')->nullable();
+            $table->string('file')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-            $table->json('allowed_users')->nullable();
-            $table->string('image')->nullable();
-            $table->text('files')->nullable();
             $table->unsignedBigInteger('like_count')->default(0);
             $table->unsignedBigInteger('reply_count')->default(0);
             $table->timestamps();
@@ -37,6 +35,6 @@ class CreateDiscussionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('discussions');
+        Schema::dropIfExists('replies');
     }
 }
