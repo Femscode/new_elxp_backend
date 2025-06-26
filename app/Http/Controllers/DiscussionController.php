@@ -22,7 +22,7 @@ class DiscussionController extends Controller
                 'allowed_users' => 'nullable|array',
                 'allowed_users.*' => 'exists:users,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'files' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+                'files' => 'nullable|file|max:5120',
                 // 'course_id' => 'required|exists:courses,id',
             ]);
 
@@ -85,7 +85,7 @@ class DiscussionController extends Controller
                 'allowed_users' => 'nullable|array',
                 'allowed_users.*' => 'exists:users,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'files' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+                'files' => 'nullable|file|max:5120',
                 'course_id' => 'sometimes|required|exists:courses,id',
             ]);
 
@@ -199,7 +199,7 @@ class DiscussionController extends Controller
                 'parent_reply_id' => 'nullable|exists:replies,id',
                 'body' => 'required|string',
                 'title' => 'nullable|string|max:255',
-                'file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+                'file' => 'nullable|file|max:5120',
             ]);
 
             if ($validator->fails()) {
@@ -268,7 +268,7 @@ class DiscussionController extends Controller
             $validator = Validator::make($request->all(), [
                 'body' => 'sometimes|required|string',
                 'title' => 'nullable|string|max:255',
-                'file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+                'file' => 'nullable|file|max:5120',
             ]);
 
             if ($validator->fails()) {

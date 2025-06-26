@@ -19,6 +19,7 @@ class CreateDiscussionsTable extends Migration
             $table->integer('course_id')->nullable();
             $table->string('user_id')->nullable();
             $table->string('title');
+            $table->string('content')->nullable();;
             $table->enum('visibility', ['public', 'private'])->default('public');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->json('allowed_users')->nullable();
