@@ -84,6 +84,7 @@ Route::group(['prefix' => 'discussions', 'middleware' => 'auth:sanctum'], functi
     Route::put('/update/{id}', [DiscussionController::class, 'update'])->name('update-discussion');
     Route::delete('/delete/{id}', [DiscussionController::class, 'delete'])->name('delete-discussion');
     Route::get('/course/{course_id}', [DiscussionController::class, 'fetchByCourse'])->name('fetch-discussions-by-course');
+     Route::get('/user/{user_id}', [DiscussionController::class, 'fetchByUser'])->name('fetch-discussions-by-user');
 });
 
 Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function () {

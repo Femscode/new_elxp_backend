@@ -378,4 +378,24 @@ class DiscussionController extends Controller
             ], 401);
         }
     }
+
+     public function fetchByUser($user_id)
+    {
+        try {
+            $discussions = Discussion::where('created_by', $user_id)
+                ->with(['createdBy', 'replies'])
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $discussions,
+                'message' => 'Discussions fetched successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
 }
