@@ -274,20 +274,50 @@ class CourseController extends Controller
         }
     }
 
-    public function fetchCourseContent($courseId)
+    public function fetchCourseContent(Request $request)
     {
-        $course = Course::with(['base_contents','sections' => function ($query) {
-            $query->with('contents');
-        }])->where('uuid', $courseId)->firstOrFail();
+        $courseId   = $request->input('course_id');
+        $sectionId  = $request->input('section_id');
+        $contentId  = $request->input('content_id');
 
+        // Base query for Content model
+        $query = Content::query();
 
+        if ($contentId && $sectionId && $courseId) {
+            $query->where('id', $contentId)
+                ->where('section_id', $sectionId)
+                ->where('course_id', $courseId);
+        } elseif ($contentId && $sectionId) {
+            $query->where('id', $contentId)
+                ->where('section_id', $sectionId);
+        } elseif ($contentId && $courseId) {
+            $query->where('id', $contentId)
+                ->where('course_id', $courseId);
+        } elseif ($sectionId && $courseId) {
+            $query->where('section_id', $sectionId)
+                ->where('course_id', $courseId);
+        } elseif ($contentId) {
+            $query->where('id', $contentId);
+        } elseif ($sectionId) {
+            $query->where('section_id', $sectionId);
+        } elseif ($courseId) {
+            $query->where('course_id', $courseId);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'At least one of course_id, section_id or content_id is required.',
+            ], 400);
+        }
+
+        $contents = $query->get();
 
         return response()->json([
             'status' => true,
-            'data' => $course,
-            'message' => 'Course Details Fetched Successfully!'
+            'data' => $contents,
+            'message' => 'Content(s) fetched successfully.'
         ], 200);
     }
+
 
 
 
