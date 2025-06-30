@@ -9,7 +9,7 @@ class Content extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $table = 'contents';
+    protected $table = 'course_contents';
 
     protected $hidden = ['created_at', 'updated_at'];
 

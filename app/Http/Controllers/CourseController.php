@@ -92,7 +92,7 @@ class CourseController extends Controller
     {
         try {
             $section = Section::with('contents')->findOrFail($sectionId);
-            
+
             return response()->json([
                 'status' => true,
                 'data' => $section,
@@ -170,11 +170,8 @@ class CourseController extends Controller
 
             $validator = Validator::make($request->all(), [
 
-                'course_id' => 'required',
-                'section_id' => 'required',
+                'course_id' => 'required|exists:courses,id',
                 'contentType' => 'required',
-                'data' => 'required'
-
             ]);
 
             if ($validator->fails()) {
@@ -184,6 +181,12 @@ class CourseController extends Controller
                 ], 401);
             }
             $data = $request->all();
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileName = $file->hashName();
+                $file->move(public_path('/contentFiles'), $fileName);
+                $data['file'] = $fileName; // Store file path in data field
+            }
             $content = Content::create($data);
             return response()->json([
                 'status' => true,
@@ -202,7 +205,7 @@ class CourseController extends Controller
     {
         try {
             $content = Content::findOrFail($contentId);
-            
+
             return response()->json([
                 'status' => true,
                 'data' => $content,
@@ -273,11 +276,11 @@ class CourseController extends Controller
 
     public function fetchCourseContent($courseId)
     {
-        $course = Course::with(['sections' => function ($query) {
+        $course = Course::with(['base_contents','sections' => function ($query) {
             $query->with('contents');
         }])->where('uuid', $courseId)->firstOrFail();
 
-   
+
 
         return response()->json([
             'status' => true,
@@ -396,7 +399,7 @@ class CourseController extends Controller
             if (isset($courseData['data']) && is_string($courseData['data'])) {
                 $cleanedData = trim($courseData['data'], "'");
                 $courseData = json_decode($cleanedData, true);
-                
+
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     return response()->json([
                         'status' => false,
@@ -415,11 +418,11 @@ class CourseController extends Controller
                     if (isset($sectionData['id'])) {
                         // Update existing section
                         $section = Section::where('id', $sectionData['id'])
-                                        ->where('course_id', $course->id)
-                                        ->firstOrFail();
+                            ->where('course_id', $course->id)
+                            ->firstOrFail();
                         $section->update(collect($sectionData)
-                                ->except(['contents', 'created_at', 'updated_at'])
-                                ->toArray());
+                            ->except(['contents', 'created_at', 'updated_at'])
+                            ->toArray());
                     } else {
                         // Create new section
                         $section = Section::create(array_merge(
@@ -429,7 +432,7 @@ class CourseController extends Controller
                             ['course_id' => $course->id]
                         ));
                     }
-                    
+
                     $updatedSectionIds[] = $section->id;
 
                     // Handle contents for this section
@@ -440,11 +443,11 @@ class CourseController extends Controller
                             if (isset($contentData['id'])) {
                                 // Update existing content
                                 $content = Content::where('id', $contentData['id'])
-                                                ->where('section_id', $section->id)
-                                                ->firstOrFail();
+                                    ->where('section_id', $section->id)
+                                    ->firstOrFail();
                                 $content->update(collect($contentData)
-                                        ->except(['created_at', 'updated_at'])
-                                        ->toArray());
+                                    ->except(['created_at', 'updated_at'])
+                                    ->toArray());
                             } else {
                                 // Create new content
                                 $content = Content::create(array_merge(
@@ -462,15 +465,15 @@ class CourseController extends Controller
 
                         // Delete contents that are no longer in the updated data
                         Content::where('section_id', $section->id)
-                              ->whereNotIn('id', $updatedContentIds)
-                              ->delete();
+                            ->whereNotIn('id', $updatedContentIds)
+                            ->delete();
                     }
                 }
 
                 // Delete sections that are no longer in the updated data
                 Section::where('course_id', $course->id)
-                      ->whereNotIn('id', $updatedSectionIds)
-                      ->delete();
+                    ->whereNotIn('id', $updatedSectionIds)
+                    ->delete();
             }
 
             // Fetch updated course with relations
@@ -483,7 +486,6 @@ class CourseController extends Controller
                 'data' => $updatedCourse,
                 'message' => 'Course Content Updated Successfully!'
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,

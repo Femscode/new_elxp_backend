@@ -27,5 +27,10 @@ class Course extends Model
     {
         return $this->hasMany(Content::class, 'course_id', 'uuid');
     }
+    public function base_contents()
+    {
+          return $this->hasMany(Content::class, 'course_id', 'uuid')
+                ->whereNull('section_id');
+    }
 
 }

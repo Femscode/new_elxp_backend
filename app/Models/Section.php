@@ -9,7 +9,7 @@ class Section extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $table = 'sections';
+    protected $table = 'course_sections';
 
     protected $hidden = ['created_at', 'updated_at'];
     public function course()

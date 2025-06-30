@@ -13,13 +13,15 @@ class CreateContentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('contents', function (Blueprint $table) {
+        Schema::create('course_contents', function (Blueprint $table) {
             $table->id();
             $table->string('course_id');
             $table->integer('section_id');
             $table->string('title')->nullable();
+            $table->string('description')->nullable();
             $table->string('contentType');
-            $table->longText('data');
+            $table->longText('data')->nullable();
+            $table->longText('file')->nullable();
 
             $table->timestamps();
         });
