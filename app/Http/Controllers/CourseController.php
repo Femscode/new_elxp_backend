@@ -280,6 +280,9 @@ class CourseController extends Controller
         $sectionId  = $request->input('section_id');
         $contentId  = $request->input('content_id');
 
+
+
+
         // Base query for Content model
         $query = Content::query();
 
@@ -301,7 +304,16 @@ class CourseController extends Controller
         } elseif ($sectionId) {
             $query->where('section_id', $sectionId);
         } elseif ($courseId) {
-            $query->where('course_id', $courseId);
+            $course = Course::with(['base_contents', 'sections' => function ($query) {
+                $query->with('contents');
+            }])->where('uuid', $courseId)->firstOrFail();
+
+            return response()->json([
+                'status' => true,
+                'data' => $course,
+                'message' => 'Content(s) fetched successfully.'
+            ], 200);
+            // $query->where('course_id', $courseId);
         } else {
             return response()->json([
                 'status' => false,
