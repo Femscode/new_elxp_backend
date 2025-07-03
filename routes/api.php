@@ -8,6 +8,7 @@ use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CalenderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -92,6 +93,15 @@ Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function (
     Route::put('/update/{id}', [DiscussionController::class, 'updateReply'])->name('update-reply');
     Route::delete('/delete/{id}', [DiscussionController::class, 'deleteReply'])->name('delete-reply');
     Route::get('/discussion/{discussion_id}', [DiscussionController::class, 'fetchByDiscussion'])->name('fetch-replies-by-discussion');
+});
+
+Route::group(['prefix' => 'calender', 'middleware' => 'auth:sanctum'], function () {
+    Route::get('/event', [CalenderController::class, 'index'])->name('event');
+    Route::post('/create', [CalenderController::class, 'create'])->name('create_event');
+    Route::put('/update/{id}', [CalenderController::class, 'update'])->name('update_event');
+    Route::delete('/delete/{id}', [CalenderController::class, 'delete'])->name('delete_event');
+    Route::get('/event/{id}', [CalenderController::class, 'fetchByEvent'])->name('fetch_event');
+    Route::get('/events', [CalenderController::class, 'count'])->name('event_count');
 });
 
 // User Management Route (Can be accessed with and without authentication)
