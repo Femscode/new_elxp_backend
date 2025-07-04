@@ -34,9 +34,11 @@ class CalenderController extends Controller
                     'name' => 'required|string|max:255',
                     'date' => 'required|date',
                     'time' => 'required',
+                    'duration'=>'required',
                     'unit' => 'required|in:minutes,hours',
                     'audience' => 'required|in:private,specific,public',
                     'color' => 'nullable|string|max:50',
+                    'description' => 'required',
                     'status' => 'nullable|boolean',
                 ]);
 
@@ -106,9 +108,11 @@ class CalenderController extends Controller
                 'name' => 'sometimes|required|string|max:255',
                 'date' => 'sometimes|required|date',
                 'time' => 'sometimes|required',
+                'duration'=>'sometimes|required',
                 'unit' => 'sometimes|required|in:minutes,hours',
-                'audience' => 'sometimes|required|in:private,specific,public',
+                'audience' =>'sometimes|required|in:private,specific,public',
                 'color' => 'nullable|string|max:50',
+                'color'=> 'sometimes | required',
                 'status' => 'nullable|boolean',
             ]);
 

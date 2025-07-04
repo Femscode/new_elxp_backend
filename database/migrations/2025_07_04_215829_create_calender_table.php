@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCalendersTable extends Migration
+class CreateCalenderTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,13 @@ class CreateCalendersTable extends Migration
      */
     public function up()
     {
-        Schema::create('calender', function (Blueprint $table) {
-           $table->id();
+        Schema::create('calendars', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->uuid('uuid')->unique();
             $table->string('name');
+            $table->text('description')->nullable();   // Added description (long text)
+            $table->string('duration');                // Added duration (you can change to integer if it's numeric)
             $table->date('date');
             $table->time('time');
             $table->enum('unit', ['minutes', 'hours']);
