@@ -13,7 +13,7 @@ class CreateCalenderTable extends Migration
      */
     public function up()
     {
-        Schema::create('calendars', function (Blueprint $table) {
+        Schema::create('calender', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->uuid('uuid')->unique();
@@ -27,6 +27,7 @@ class CreateCalenderTable extends Migration
             $table->string('color')->nullable();
             $table->boolean('status')->default(0);
             $table->timestamps();
+
         });
     }
 

@@ -19,10 +19,10 @@ class Calender extends Model
         'date',
         'time',
         'unit',
-        'duration'
+        'duration',
         'audience',
         'color',
-        'description'
+        'description',
         'status',
 ];
  protected $casts = [
