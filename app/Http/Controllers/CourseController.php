@@ -170,7 +170,7 @@ class CourseController extends Controller
 
             $validator = Validator::make($request->all(), [
 
-                'course_id' => 'required|exists:courses,id',
+                'course_id' => 'required|exists:courses,uuid',
                 'contentType' => 'required',
             ]);
 
