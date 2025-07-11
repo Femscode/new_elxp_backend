@@ -18,6 +18,7 @@ class CalenderController extends Controller
     {
         $user = Auth::user();
         $calender = Calender::where('user_id', $user->id)->get();
+        $calender['organiser'] = $user->first_name . ' ' . $user->last_name;
 
         return response()->json([
             'status' => true,
@@ -77,6 +78,7 @@ class CalenderController extends Controller
     {
         $user = Auth::user();
         $calender = Calender::where('user_id', $user->id)->find($id);
+        $calender['organiser'] = $user->first_name . ' ' . $user->last_name;
 
         if (!$calender) {
             return response()->json([
@@ -96,6 +98,7 @@ class CalenderController extends Controller
         try {
             $user = Auth::user();
             $calender = Calender::where('user_id', $user->id)->find($id);
+            $calender['organiser'] = $user->first_name . ' ' . $user->last_name;
 
             if (!$calender) {
                 return response()->json([
