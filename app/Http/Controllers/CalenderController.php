@@ -18,8 +18,11 @@ class CalenderController extends Controller
     {
         $user = Auth::user();
         $calender = Calender::where('user_id', $user->id)->get();
-        $calender['organiser'] = $user->first_name . ' ' . $user->last_name;
 
+        foreach ($calender as $calenders) {
+        $calenders->organiser = $user->first_name . ' ' . $user->last_name;
+        }
+        
         return response()->json([
             'status' => true,
             'data' => $calender
@@ -74,11 +77,10 @@ class CalenderController extends Controller
     }
 
      // Show a single calendar entry
-    public function fetchByEvent($id)
+   public function fetchByEvent($id)
     {
         $user = Auth::user();
         $calender = Calender::where('user_id', $user->id)->find($id);
-        $calender['organiser'] = $user->first_name . ' ' . $user->last_name;
 
         if (!$calender) {
             return response()->json([
@@ -87,18 +89,22 @@ class CalenderController extends Controller
             ], 404);
         }
 
+        // Add organiser name manually to the model instance
+        $calender->organiser = $user->first_name . ' ' . $user->last_name;
+
         return response()->json([
             'status' => true,
             'data' => $calender
         ], 200);
     }
 
+
     public function update(Request $request, $id)
     {
         try {
             $user = Auth::user();
             $calender = Calender::where('user_id', $user->id)->find($id);
-            $calender['organiser'] = $user->first_name . ' ' . $user->last_name;
+            
 
             if (!$calender) {
                 return response()->json([
@@ -126,7 +132,9 @@ class CalenderController extends Controller
                 ], 401);
             }
 
-            $calender->update($request->all());
+            $input = $request->except(['organiser']); // exclude fields not in DB
+            $calender->update($input);
+
 
             return response()->json([
                 'status' => true,
