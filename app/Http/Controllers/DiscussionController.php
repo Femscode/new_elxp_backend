@@ -398,4 +398,23 @@ class DiscussionController extends Controller
             ], 401);
         }
     }
+
+    public function fetchAll()
+    {
+        try {
+            $discussions = Discussion::with(['createdBy', 'replies'])
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $discussions,
+                'message' => 'Discussions fetched successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+    }
 }

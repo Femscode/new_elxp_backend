@@ -81,11 +81,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['prefix' => 'discussions', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/', [DiscussionController::class, 'create'])->name('create-discussion');
     Route::post('/create', [DiscussionController::class, 'create'])->name('create-discussion');
     Route::put('/update/{id}', [DiscussionController::class, 'update'])->name('update-discussion');
     Route::delete('/delete/{id}', [DiscussionController::class, 'delete'])->name('delete-discussion');
     Route::get('/course/{course_id}', [DiscussionController::class, 'fetchByCourse'])->name('fetch-discussions-by-course');
      Route::get('/user/{user_id}', [DiscussionController::class, 'fetchByUser'])->name('fetch-discussions-by-user');
+     Route::get('/fetchAll', [DiscussionController::class, 'fetchAll'])->name('fetch-all-discussions');
 });
 
 Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function () {
