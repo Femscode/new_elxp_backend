@@ -24,6 +24,9 @@ class Calender extends Model
         'color',
         'description',
         'status',
+        'repeatInterval',
+        'repeatUnit',
+        'occurrences',
 ];
  protected $casts = [
         'status' => 'boolean',

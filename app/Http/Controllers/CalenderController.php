@@ -44,6 +44,9 @@ class CalenderController extends Controller
                     'color' => 'nullable|string|max:50',
                     'description' => 'required',
                     'status' => 'nullable|boolean',
+                    'repeatInterval' => 'nullable|integer',
+                    'repeatUnit' => 'nullable|in:days,weeks',
+                    'occurrences' => 'nullable|integer',
                 ]);
 
                 if ($validator->fails()) {
