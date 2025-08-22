@@ -53,7 +53,7 @@ class CalenderController extends Controller
                     return response()->json([
                         'status' => false,
                         'message' => $validator
-                ], 401);
+                ], 400);
                 }
 
                 $data = $request->all();
@@ -69,7 +69,7 @@ class CalenderController extends Controller
                     'status' => true,
                     'message' => 'Event created successfully!',
                     'data' => $calender
-                ], 201);
+                ], 200);
 
             } catch (\Exception $e) {
                 return response()->json([
