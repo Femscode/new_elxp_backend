@@ -9,6 +9,9 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CalenderController;
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\SurveyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -105,6 +108,20 @@ Route::group(['prefix' => 'calender', 'middleware' => 'auth:sanctum'], function 
     Route::get('/event/{id}', [CalenderController::class, 'fetchByEvent'])->name('fetch_event');
     Route::get('/events', [CalenderController::class, 'count'])->name('event_count');
 });
+
+
+Route::group(['prefix' => 'assignment', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [AssignmentController::class, 'create'])->name("create_assignment");
+});
+
+Route::group(['prefix' => 'quiz', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [QuizController::class, 'create'])->name("create_quiz");
+});
+
+Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [SurveyController::class, 'create'])->name("create_quiz");
+});
+
 
 // User Management Route (Can be accessed with and without authentication)
 Route::apiResource('users', UserController::class);
