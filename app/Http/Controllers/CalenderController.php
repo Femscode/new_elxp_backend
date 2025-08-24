@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class CalenderController extends Controller
 {
-     
+
     // List all calendar entries for authenticated user
     public function index()
     {
@@ -20,9 +20,9 @@ class CalenderController extends Controller
         $calender = Calender::where('user_id', $user->id)->get();
 
         foreach ($calender as $calenders) {
-        $calenders->organiser = $user->first_name . ' ' . $user->last_name;
+            $calenders->organiser = $user->first_name . ' ' . $user->last_name;
         }
-        
+
         return response()->json([
             'status' => true,
             'data' => $calender
@@ -31,56 +31,55 @@ class CalenderController extends Controller
 
     public function create(Request $request)
     {
-            try {
-                $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-                    $validator = Validator::make($request->all(), [
-                    'name' => 'required|string|max:255',
-                    'date' => 'required|date',
-                    'time' => 'required',
-                    'duration'=>'required',
-                    'unit' => 'required|in:minutes,hours',
-                    'audience' => 'required|in:private,specific,public',
-                    'color' => 'nullable|string|max:50',
-                    'description' => 'required',
-                    'status' => 'nullable|boolean',
-                    'repeatInterval' => 'nullable|integer',
-                    'repeatUnit' => 'nullable|in:days,weeks',
-                    'occurrences' => 'nullable|integer',
-                ]);
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'date' => 'required|date',
+                'time' => 'required',
+                'duration' => 'required',
+                'unit' => 'required|in:minutes,hours',
+                'audience' => 'required|in:private,specific,public',
+                'color' => 'nullable|string|max:50',
+                'description' => 'required',
+                'status' => 'nullable|boolean',
+                'repeatInterval' => 'nullable|integer',
+                'repeatUnit' => 'nullable|in:days,weeks',
+                'occurrences' => 'nullable|integer',
+            ]);
 
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => $validator
-                ], 401);
-                }
-
-                $data = $request->all();
-                $data['user_id'] = $user->id;
-                $data['uuid'] = Str::uuid();
-                $data['status'] = $request->input('status', 0);
-
-                
-
-                $calender = Calender::create($data);
-
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Event created successfully!',
-                    'data' => $calender
-                ], 201);
-
-            } catch (\Exception $e) {
+            if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Error: ' . $e->getMessage()
-                ], 500);
+                    'message' => $validator
+                ], 401);
+            }
+
+            $data = $request->all();
+            $data['user_id'] = $user->id;
+            $data['uuid'] = Str::uuid();
+            $data['status'] = $request->input('status', 0);
+
+
+
+            $calender = Calender::create($data);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Event created successfully!',
+                'data' => $calender
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-     // Show a single calendar entry
-   public function fetchByEvent($id)
+    // Show a single calendar entry
+    public function fetchByEvent($id)
     {
         $user = Auth::user();
         $calender = Calender::where('user_id', $user->id)->find($id);
@@ -107,7 +106,7 @@ class CalenderController extends Controller
         try {
             $user = Auth::user();
             $calender = Calender::where('user_id', $user->id)->find($id);
-            
+
 
             if (!$calender) {
                 return response()->json([
@@ -120,11 +119,11 @@ class CalenderController extends Controller
                 'name' => 'sometimes|required|string|max:255',
                 'date' => 'sometimes|required|date',
                 'time' => 'sometimes|required',
-                'duration'=>'sometimes|required',
+                'duration' => 'sometimes|required',
                 'unit' => 'sometimes|required|in:minutes,hours',
-                'audience' =>'sometimes|required|in:private,specific,public',
+                'audience' => 'sometimes|required|in:private,specific,public',
                 'color' => 'nullable|string|max:50',
-                'color'=> 'sometimes | required',
+                'color' => 'sometimes | required',
                 'status' => 'nullable|boolean',
             ]);
 
@@ -144,7 +143,6 @@ class CalenderController extends Controller
                 'message' => 'Event updated successfully!',
                 'data' => $calender
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -152,7 +150,7 @@ class CalenderController extends Controller
             ], 500);
         }
     }
-    
+
     public function delete($id)
     {
         $user = Auth::user();
@@ -184,5 +182,4 @@ class CalenderController extends Controller
             'total_events' => $total
         ], 200);
     }
-    
 }
