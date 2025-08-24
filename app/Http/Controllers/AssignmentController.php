@@ -97,7 +97,7 @@ class AssignmentController extends Controller
                         'uuid' => Str::uuid(),
                         'assignment_id' => $assignment->id,
                         'name'=>  $resourceData['name'],
-                        'type' => $resourceData['type'] ?? 'file',
+                        // 'type' => $resourceData['type'] ?? 'file',
                         'url' => $resourceData['url'] ?? null,
                         'description' => $resourceData['description'] ?? null,
                     ]);

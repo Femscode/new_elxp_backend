@@ -10,6 +10,8 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CalenderController;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\SurveyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -110,6 +112,14 @@ Route::group(['prefix' => 'calender', 'middleware' => 'auth:sanctum'], function 
 
 Route::group(['prefix' => 'assignment', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/create', [AssignmentController::class, 'create'])->name("create_assignment");
+});
+
+Route::group(['prefix' => 'quiz', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [QuizController::class, 'create'])->name("create_quiz");
+});
+
+Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function () {
+    Route::post('/create', [SurveyController::class, 'create'])->name("create_quiz");
 });
 
 

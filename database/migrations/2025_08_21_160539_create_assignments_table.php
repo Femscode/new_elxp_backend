@@ -15,7 +15,7 @@ class CreateAssignmentsTable extends Migration
     {
         Schema::create('assignments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id'); // Link to user who created it
+            $table->unsignedBigInteger('user_id'); 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('uuid')->unique(); // unique UUID for external use
             $table->string('title');
@@ -30,6 +30,7 @@ class CreateAssignmentsTable extends Migration
             $table->string('course_uuid');
             $table->enum('status', ['draft', 'published','archived'])->default('draft');
             $table->timestamps();
+
         });
     }
 
