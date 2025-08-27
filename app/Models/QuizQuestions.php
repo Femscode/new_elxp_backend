@@ -25,6 +25,7 @@ class QuizQuestions extends Model
     protected $casts = [
         'options' => 'array',
         'required' => 'boolean',
+        'correct_answer' => 'json',
     ];
 
     /**

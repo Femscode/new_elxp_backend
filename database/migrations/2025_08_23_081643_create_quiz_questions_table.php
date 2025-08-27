@@ -20,7 +20,7 @@ class CreateQuizQuestionsTable extends Migration
             $table->string('type'); // multiple-choice, true-false, etc.
             $table->text('question');
             $table->integer('points')->default(1);
-            $table->text('correct_answer')->nullable(); 
+            $table->json('correct_answer')->nullable();
             $table->text('explanation')->nullable();
             $table->json('options')->nullable(); 
             $table->boolean('required')->default(true);
