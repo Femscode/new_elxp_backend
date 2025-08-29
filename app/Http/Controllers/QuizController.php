@@ -24,6 +24,7 @@ class QuizController extends Controller
                 'attempts' => 'required|integer|min:1',
                 'passing_score' => 'required|integer|min:0',
                 'course_id' => 'required|exists:courses,id',
+                'content_id' => 'required|exists:contents,id',
                 'status' => 'in:draft,published,archived',
                 'settings' => 'required|array',
                 'settings.shuffleQuestions' => 'required|boolean',
@@ -62,6 +63,7 @@ class QuizController extends Controller
             // Create quiz setting
             $quizSetting = QuizSetting::create([
                 'user_id'=> $user->id,
+                'content_id' => $validated['content_id'],
                 'uuid' => Str::uuid(),
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,

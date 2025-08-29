@@ -20,6 +20,7 @@ class AssignmentController extends Controller
             $user = Auth::user();
             $validator = Validator::make($request->all(), [
                 'course_uuid' => 'required|string|exists:courses,uuid',
+                'content_id' => 'required',
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'instructions' => 'required|string',
@@ -57,6 +58,7 @@ class AssignmentController extends Controller
             $assignment = Assignment::create([
                 'user_id'=> $user->id,
                 'course_uuid' => $validated['course_uuid'],
+                'content_id' => $validated['content_id'],
                 'uuid'=>Str::uuid(),
                 'title' => $validated['title'],
                 'description' => $validated['description'],
