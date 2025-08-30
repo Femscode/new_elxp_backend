@@ -30,6 +30,11 @@ class QuizSetting extends Model
     /**
      * A quiz setting belongs to a course
      */
+
+      public function content()
+    {
+        return $this->morphOne(Content::class, 'contentable');
+    }
     public function course()
     {
         return $this->belongsTo(Course::class);

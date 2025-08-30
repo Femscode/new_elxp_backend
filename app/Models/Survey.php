@@ -23,6 +23,10 @@ class Survey extends Model
         'user_id'
     ];
 
+     public function content()
+    {
+        return $this->morphOne(Content::class, 'contentable');
+    }
     public function questions()
     {
         return $this->hasMany(SurveyQuestion::class, 'survey_id');

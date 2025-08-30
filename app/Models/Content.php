@@ -13,6 +13,11 @@ class Content extends Model
 
     protected $hidden = ['created_at', 'updated_at'];
 
+     public function contentable()
+    {
+        return $this->morphTo();
+    }
+
     public function section()
     {
         return $this->belongsTo(Section::class);

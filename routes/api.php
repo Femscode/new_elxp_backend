@@ -89,8 +89,8 @@ Route::group(['prefix' => 'discussions', 'middleware' => 'auth:sanctum'], functi
     Route::put('/update/{id}', [DiscussionController::class, 'update'])->name('update-discussion');
     Route::delete('/delete/{id}', [DiscussionController::class, 'delete'])->name('delete-discussion');
     Route::get('/course/{course_id}', [DiscussionController::class, 'fetchByCourse'])->name('fetch-discussions-by-course');
-     Route::get('/user/{user_id}', [DiscussionController::class, 'fetchByUser'])->name('fetch-discussions-by-user');
-     Route::get('/fetchAll', [DiscussionController::class, 'fetchAll'])->name('fetch-all-discussions');
+    Route::get('/user/{user_id}', [DiscussionController::class, 'fetchByUser'])->name('fetch-discussions-by-user');
+    Route::get('/fetchAll', [DiscussionController::class, 'fetchAll'])->name('fetch-all-discussions');
 });
 
 Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function () {
@@ -112,14 +112,23 @@ Route::group(['prefix' => 'calender', 'middleware' => 'auth:sanctum'], function 
 
 Route::group(['prefix' => 'assignment', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/create', [AssignmentController::class, 'create'])->name("create_assignment");
+    Route::put('update/{id}', [AssignmentController::class, 'update'])->name("update_assignment");
+    Route::get('show/{id}', [AssignmentController::class, 'show'])->name("show_assignment");
+    Route::delete('delete/{id}', [AssignmentController::class, 'destroy'])->name("delete_assignment");
 });
 
 Route::group(['prefix' => 'quiz', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/create', [QuizController::class, 'create'])->name("create_quiz");
+    Route::put('update/{id}', [QuizController::class, 'update'])->name("update_quiz");
+    Route::get('show/{id}', [QuizController::class, 'show'])->name("show_quiz");
+    Route::delete('delete/{id}', [QuizController::class, 'destroy'])->name("delete_quiz");
 });
 
 Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function () {
-    Route::post('/create', [SurveyController::class, 'create'])->name("create_quiz");
+    Route::post('/create', [SurveyController::class, 'create'])->name("create_survey");
+    Route::put('update/{id}', [SurveyController::class, 'update'])->name("update_survey");
+    Route::get('show/{id}', [SurveyController::class, 'show'])->name("show_survey");
+    Route::delete('delete/{id}', [SurveyController::class, 'destroy'])->name("delete_survey");
 });
 
 

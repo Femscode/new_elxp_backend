@@ -12,6 +12,7 @@ class Assignment extends Model
     protected $table = 'assignments';
 
 
+
     protected $fillable = [
         'title',
         'description',
@@ -28,12 +29,17 @@ class Assignment extends Model
         'uuid',
     ];
 
+    
     protected $casts = [
         'allowed_file_types' => 'array',
         'due_date' => 'datetime',
     ];
 
 
+     public function content()
+    {
+        return $this->morphOne(Content::class, 'contentable');
+    }
     public function course()
     {
         return $this->belongsTo(Course::class, 'course_uuid', 'uuid');
