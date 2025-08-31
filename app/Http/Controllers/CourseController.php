@@ -232,7 +232,7 @@ class CourseController extends Controller
             'contentType' => $content->contentType,
             'courseId' => $content->course_id,
             'sectionId' => $content->section_id,
-            'data' => $content,
+            'data' => $content->data,
         ];
 
         // Add the specific entity data based on content type
