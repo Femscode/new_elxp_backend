@@ -27,6 +27,7 @@ class Assignment extends Model
         'status',
         'user_id',
         'uuid',
+        'content_id',
     ];
 
     
