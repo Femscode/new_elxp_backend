@@ -20,7 +20,8 @@ class Survey extends Model
         'show_results',
         'course_id',
         'status',
-        'user_id'
+        'user_id',
+
     ];
 
      public function content()
