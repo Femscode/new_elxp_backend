@@ -288,48 +288,52 @@ class QuizController extends Controller
     {
         try {
             $user = Auth::user();
-            $quizSetting = QuizSetting::with(['questions'])
-                ->where('content_id', $content_id)
-                ->first();
 
-            if (!$quizSetting) {
+            $quizSettings = QuizSetting::with(['questions'])
+                ->where('content_id', $content_id)
+                ->get();
+
+            if ($quizSettings->isEmpty()) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Quiz not found.'
+                    'message' => 'No quizzes found for this content.'
                 ], 404);
             }
 
-            // Format response to match requirements
-            $formattedQuiz = [
-                'id' => $quizSetting->uuid,
-                'title' => $quizSetting->title,
-                'description' => $quizSetting->description,
-                'timeLimit' => $quizSetting->time_limit,
-                'attempts' => $quizSetting->attempts,
-                'passingScore' => $quizSetting->passing_score,
-                'settings' => $quizSetting->settings,
-                'questions' => $quizSetting->questions->map(function ($question) {
-                    return [
-                        'id' => $question->uuid,
-                        'type' => $question->type,
-                        'question' => $question->question,
-                        'points' => $question->points,
-                        'correctAnswer' => $question->correct_answer,
-                        'explanation' => $question->explanation,
-                        'options' => $question->options,
-                        'required' => $question->required,
-                    ];
-                }),
-                'courseId' => $quizSetting->course_id,
-                'createdAt' => $quizSetting->created_at->toISOString(),
-                'updatedAt' => $quizSetting->updated_at->toISOString(),
-            ];
+            // Format response for all quizzes
+            $formattedQuizzes = $quizSettings->map(function ($quizSetting) {
+                return [
+                    'id' => $quizSetting->uuid,
+                    'title' => $quizSetting->title,
+                    'description' => $quizSetting->description,
+                    'timeLimit' => $quizSetting->time_limit,
+                    'attempts' => $quizSetting->attempts,
+                    'passingScore' => $quizSetting->passing_score,
+                    'settings' => $quizSetting->settings,
+                    'questions' => $quizSetting->questions->map(function ($question) {
+                        return [
+                            'id' => $question->uuid,
+                            'type' => $question->type,
+                            'question' => $question->question,
+                            'points' => $question->points,
+                            'correctAnswer' => $question->correct_answer,
+                            'explanation' => $question->explanation,
+                            'options' => $question->options,
+                            'required' => $question->required,
+                        ];
+                    }),
+                    'courseId' => $quizSetting->course_id,
+                    'createdAt' => $quizSetting->created_at->toISOString(),
+                    'updatedAt' => $quizSetting->updated_at->toISOString(),
+                ];
+            });
 
             return response()->json([
                 'status' => true,
-                'message' => 'Quiz retrieved successfully!',
-                'data' => $formattedQuiz
+                'message' => 'Quizzes retrieved successfully!',
+                'data' => $formattedQuizzes
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -337,6 +341,7 @@ class QuizController extends Controller
             ], 500);
         }
     }
+
 
 
     public function destroy($id)

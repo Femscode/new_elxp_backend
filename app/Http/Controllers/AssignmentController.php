@@ -385,63 +385,67 @@ class AssignmentController extends Controller
     {
         try {
             $user = Auth::user();
-            $assignment = Assignment::with(['course', 'rubrics.levels', 'resources'])
-                ->where('content_id', $content_id)   // use content_id instead of id
-                ->first();
 
-            if (!$assignment) {
+            $assignments = Assignment::with(['course', 'rubrics.levels', 'resources'])
+                ->where('content_id', $content_id)
+                ->get();
+
+            if ($assignments->isEmpty()) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Assignment not found.'
+                    'message' => 'No assignments found for this content.'
                 ], 404);
             }
 
-            // Format response
-            $formattedAssignment = [
-                'id' => $assignment->uuid,
-                'title' => $assignment->title,
-                'description' => $assignment->description,
-                'instructions' => $assignment->instructions,
-                'dueDate' => $assignment->due_date ? $assignment->due_date->toISOString() : null,
-                'points' => $assignment->points,
-                'submissionType' => $assignment->submission_type,
-                'allowedFileTypes' => $assignment->allowed_file_types,
-                'maxFileSize' => $assignment->max_file_size,
-                'attempts' => $assignment->attempts,
-                'rubric' => $assignment->rubrics->map(function ($rubric) {
-                    return [
-                        'id' => $rubric->uuid,
-                        'name' => $rubric->name,
-                        'description' => $rubric->description,
-                        'points' => $rubric->levels->sum('points'),
-                        'levels' => $rubric->levels->map(function ($level) {
-                            return [
-                                'name' => $level->name,
-                                'points' => $level->points,
-                                'description' => $level->description,
-                            ];
-                        })
-                    ];
-                }),
-                'resources' => $assignment->resources->map(function ($resource) {
-                    return [
-                        'id' => $resource->uuid,
-                        'name' => $resource->name,
-                        'type' => $resource->type,
-                        'url' => $resource->url,
-                        'description' => $resource->description,
-                    ];
-                }),
-                'courseId' => $assignment->course_uuid,
-                'createdAt' => $assignment->created_at->toISOString(),
-                'updatedAt' => $assignment->updated_at->toISOString(),
-            ];
+            // Format response for all assignments
+            $formattedAssignments = $assignments->map(function ($assignment) {
+                return [
+                    'id' => $assignment->uuid,
+                    'title' => $assignment->title,
+                    'description' => $assignment->description,
+                    'instructions' => $assignment->instructions,
+                    'dueDate' => $assignment->due_date ? $assignment->due_date->toISOString() : null,
+                    'points' => $assignment->points,
+                    'submissionType' => $assignment->submission_type,
+                    'allowedFileTypes' => $assignment->allowed_file_types,
+                    'maxFileSize' => $assignment->max_file_size,
+                    'attempts' => $assignment->attempts,
+                    'rubric' => $assignment->rubrics->map(function ($rubric) {
+                        return [
+                            'id' => $rubric->uuid,
+                            'name' => $rubric->name,
+                            'description' => $rubric->description,
+                            'points' => $rubric->levels->sum('points'),
+                            'levels' => $rubric->levels->map(function ($level) {
+                                return [
+                                    'name' => $level->name,
+                                    'points' => $level->points,
+                                    'description' => $level->description,
+                                ];
+                            })
+                        ];
+                    }),
+                    'resources' => $assignment->resources->map(function ($resource) {
+                        return [
+                            'id' => $resource->uuid,
+                            'name' => $resource->name,
+                            'type' => $resource->type,
+                            'url' => $resource->url,
+                            'description' => $resource->description,
+                        ];
+                    }),
+                    'courseId' => $assignment->course_uuid,
+                    'createdAt' => $assignment->created_at->toISOString(),
+                    'updatedAt' => $assignment->updated_at->toISOString(),
+                ];
+            });
 
             return response()->json([
                 'status' => true,
-                'message' => 'Assignment retrieved successfully!',
-                'data' => $formattedAssignment
+                'message' => 'Assignments retrieved successfully!',
+                'data' => $formattedAssignments
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -449,6 +453,8 @@ class AssignmentController extends Controller
             ], 500);
         }
     }
+
+
 
 
     public function destroy($id)

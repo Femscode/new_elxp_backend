@@ -270,46 +270,50 @@ class SurveyController extends Controller
     {
         try {
             $user = Auth::user();
-            $survey = Survey::with(['questions'])
-                ->where('content_id', $content_id)
-                ->first();
 
-            if (!$survey) {
+            $surveys = Survey::with(['questions'])
+                ->where('content_id', $content_id)
+                ->get();
+
+            if ($surveys->isEmpty()) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Survey not found or access denied.'
+                    'message' => 'No surveys found for this content.'
                 ], 404);
             }
 
-            // Format response to match requirements
-            $formattedSurvey = [
-                'id' => $survey->uuid,
-                'title' => $survey->title,
-                'description' => $survey->description,
-                'anonymous' => $survey->anonymous,
-                'allowMultipleResponses' => $survey->allow_multiple_responses,
-                'showResults' => $survey->show_results,
-                'questions' => $survey->questions->map(function ($question) {
-                    return [
-                        'id' => $question->uuid,
-                        'type' => $question->type,
-                        'question' => $question->question,
-                        'required' => $question->required,
-                        'options' => $question->options,
-                        'likertOptions' => $question->likert_options,
-                        'scale' => $question->scale,
-                    ];
-                }),
-                'courseId' => $survey->course_id,
-                'createdAt' => $survey->created_at->toISOString(),
-                'updatedAt' => $survey->updated_at->toISOString(),
-            ];
+            // Format response for all surveys
+            $formattedSurveys = $surveys->map(function ($survey) {
+                return [
+                    'id' => $survey->uuid,
+                    'title' => $survey->title,
+                    'description' => $survey->description,
+                    'anonymous' => $survey->anonymous,
+                    'allowMultipleResponses' => $survey->allow_multiple_responses,
+                    'showResults' => $survey->show_results,
+                    'questions' => $survey->questions->map(function ($question) {
+                        return [
+                            'id' => $question->uuid,
+                            'type' => $question->type,
+                            'question' => $question->question,
+                            'required' => $question->required,
+                            'options' => $question->options,
+                            'likertOptions' => $question->likert_options,
+                            'scale' => $question->scale,
+                        ];
+                    }),
+                    'courseId' => $survey->course_id,
+                    'createdAt' => $survey->created_at->toISOString(),
+                    'updatedAt' => $survey->updated_at->toISOString(),
+                ];
+            });
 
             return response()->json([
                 'status' => true,
-                'message' => 'Survey retrieved successfully!',
-                'data' => $formattedSurvey
+                'message' => 'Surveys retrieved successfully!',
+                'data' => $formattedSurveys
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -317,6 +321,7 @@ class SurveyController extends Controller
             ], 500);
         }
     }
+
 
     public function destroy($id)
     {
