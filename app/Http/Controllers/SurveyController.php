@@ -266,6 +266,58 @@ class SurveyController extends Controller
         }
     }
 
+    public function fetch($content_id)
+    {
+        try {
+            $user = Auth::user();
+            $survey = Survey::with(['questions'])
+                ->where('content_id', $content_id)
+                ->first();
+
+            if (!$survey) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Survey not found or access denied.'
+                ], 404);
+            }
+
+            // Format response to match requirements
+            $formattedSurvey = [
+                'id' => $survey->uuid,
+                'title' => $survey->title,
+                'description' => $survey->description,
+                'anonymous' => $survey->anonymous,
+                'allowMultipleResponses' => $survey->allow_multiple_responses,
+                'showResults' => $survey->show_results,
+                'questions' => $survey->questions->map(function ($question) {
+                    return [
+                        'id' => $question->uuid,
+                        'type' => $question->type,
+                        'question' => $question->question,
+                        'required' => $question->required,
+                        'options' => $question->options,
+                        'likertOptions' => $question->likert_options,
+                        'scale' => $question->scale,
+                    ];
+                }),
+                'courseId' => $survey->course_id,
+                'createdAt' => $survey->created_at->toISOString(),
+                'updatedAt' => $survey->updated_at->toISOString(),
+            ];
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Survey retrieved successfully!',
+                'data' => $formattedSurvey
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function destroy($id)
     {
         try {

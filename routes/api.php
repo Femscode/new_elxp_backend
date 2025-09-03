@@ -113,21 +113,24 @@ Route::group(['prefix' => 'calender', 'middleware' => 'auth:sanctum'], function 
 Route::group(['prefix' => 'assignment', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/create', [AssignmentController::class, 'create'])->name("create_assignment");
     Route::put('update/{id}', [AssignmentController::class, 'update'])->name("update_assignment");
-    Route::get('fetch/{id}', [AssignmentController::class, 'show'])->name("fetch_assignment");
+    Route::get('show/{id}', [AssignmentController::class, 'show'])->name("show_assignment");
+    Route::get('fetch/{id}', [AssignmentController::class, 'fetch'])->name("fetch_assignment");
     Route::delete('delete/{id}', [AssignmentController::class, 'destroy'])->name("delete_assignment");
 });
 
 Route::group(['prefix' => 'quiz', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/create', [QuizController::class, 'create'])->name("create_quiz");
     Route::put('update/{id}', [QuizController::class, 'update'])->name("update_quiz");
-    Route::get('fetch/{id}', [QuizController::class, 'show'])->name("fetch_quiz");
+    Route::get('show/{id}', [QuizController::class, 'show'])->name("show_quiz");
+    Route::get('fetch/{id}', [QuizController::class, 'fetch'])->name("fetch_quiz");
     Route::delete('delete/{id}', [QuizController::class, 'destroy'])->name("delete_quiz");
 });
 
 Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/create', [SurveyController::class, 'create'])->name("create_survey");
     Route::put('update/{id}', [SurveyController::class, 'update'])->name("update_survey");
-    Route::get('fetch/{id}', [SurveyController::class, 'show'])->name("fetch_survey");
+    Route::get('show/{id}', [SurveyController::class, 'show'])->name("show_survey");
+    Route::get('fetch/{id}', [SurveyController::class, 'fetch'])->name("fetch_survey");
     Route::delete('delete/{id}', [SurveyController::class, 'destroy'])->name("delete_survey");
 });
 
