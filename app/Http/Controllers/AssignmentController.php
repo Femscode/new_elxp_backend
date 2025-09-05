@@ -168,23 +168,23 @@ class AssignmentController extends Controller
                 'status' => 'sometimes|in:draft,published,archived',
 
                 // Rubric updates
-                'rubric' => 'sometimes|array|min:1',
-                'rubric.*.id' => 'sometimes|exists:rubric,id',
+                'rubric' => 'nullable|array',
+                'rubric.*.id' => 'nullable|exists:rubric,id',
                 'rubric.*.name' => 'required_with:rubric|string|max:255',
                 'rubric.*.description' => 'required_with:rubric|string',
-                'rubric.*.levels' => 'required_with:rubric|array|min:1',
-                'rubric.*.levels.*.id' => 'sometimes|exists:rubric_level,id',
+                'rubric.*.levels' => 'required_with:rubric|array',
+                'rubric.*.levels.*.id' => 'nullable|exists:rubric_level,id',
                 'rubric.*.levels.*.name' => 'required_with:rubric.*.levels|string|max:255',
-                'rubric.*.levels.*.points' => 'required_with:rubric.*.levels|integer|min:0',
+                'rubric.*.levels.*.points' => 'required_with:rubric.*.levels|integer',
                 'rubric.*.levels.*.description' => 'required_with:rubric.*.levels|string',
 
                 // Resources updates
-                'resources' => 'sometimes|array',
-                'resources.*.id' => 'sometimes|exists:resource,id',
+                'resources' => 'nullable|array',
+                'resources.*.id' => 'nullable|exists:resource,id',
                 'resources.*.name' => 'required_with:resources|string',
-                'resources.*.type' => 'sometimes|in:link,file',
+                'resources.*.type' => 'nullable|in:link,file',
                 'resources.*.url' => 'required_with:resources|string',
-                'resources.*.description' => 'sometimes|string',
+                'resources.*.description' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
