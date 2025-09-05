@@ -34,13 +34,20 @@ class AssignmentController extends Controller
                 'status' => 'in:draft,published,archived',
 
                 // Rubric is required
-                'rubric' => 'sometimes|array|min:1',
-                'rubric.*.name' => 'sometimes|string|max:255',
-                'rubric.*.description' => 'sometimes|string',
-                'rubric.*.levels' => 'sometimes|array|min:1',
-                'rubric.*.levels.*.name' => 'sometimes|string|max:255',
-                'rubric.*.levels.*.points' => 'sometimes|integer|min:0',
-                'rubric.*.levels.*.description' => 'sometimes|string',
+                'rubric' => 'nullable|array',
+                'rubric.*.name' => 'nullable|string|max:255',
+                'rubric.*.description' => 'nullable|string',
+                'rubric.*.levels' => 'nullable|array',
+                'rubric.*.levels.*.name' => 'nullable|string|max:255',
+                'rubric.*.levels.*.points' => 'nullable|integer',
+                'rubric.*.levels.*.description' => 'nullable|string',
+                // 'rubric' => 'sometimes|array|min:1',
+                // 'rubric.*.name' => 'sometimes|string|max:255',
+                // 'rubric.*.description' => 'sometimes|string',
+                // 'rubric.*.levels' => 'sometimes|array|min:1',
+                // 'rubric.*.levels.*.name' => 'sometimes|string|max:255',
+                // 'rubric.*.levels.*.points' => 'sometimes|integer|min:0',
+                // 'rubric.*.levels.*.description' => 'sometimes|string',
 
                 // Resources are optional
                 'resources' => 'nullable|array',
