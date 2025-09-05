@@ -311,7 +311,7 @@ class AssignmentController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Assignment updated successfully!',
-                'data' => $assignment->fresh()->load(['course', 'rubrics.levels', 'resources'])
+                'data' => $assignment->with(['course', 'rubrics.levels', 'resources'])->first()
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
