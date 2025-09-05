@@ -468,7 +468,7 @@ class AssignmentController extends Controller
             if (!$assignment) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'No assignment found with this ID.'
+                    'message' => 'No assignment found with this content.'
                 ], 404);
             }
 

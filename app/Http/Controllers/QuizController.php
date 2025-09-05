@@ -284,7 +284,7 @@ class QuizController extends Controller
             ], 500);
         }
     }
-    public function fetch($content_id)
+    public function oldfetch($content_id)
     {
         try {
             $user = Auth::user();
@@ -343,6 +343,61 @@ class QuizController extends Controller
     }
 
 
+        public function fetch($content_id)
+    {
+        try {
+            $user = Auth::user();
+
+            $quizSetting = QuizSetting::with(['questions'])
+                ->where('content_id', $content_id)
+                ->first();
+
+            if (!$quizSetting) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No quiz found for this content.'
+                ], 404);
+            }
+
+            // Format response for single quiz
+            $formattedQuiz = [
+                'id' => $quizSetting->uuid,
+                'title' => $quizSetting->title,
+                'description' => $quizSetting->description,
+                'timeLimit' => $quizSetting->time_limit,
+                'attempts' => $quizSetting->attempts,
+                'passingScore' => $quizSetting->passing_score,
+                'settings' => $quizSetting->settings,
+                'questions' => $quizSetting->questions->map(function ($question) {
+                    return [
+                        'id' => $question->uuid,
+                        'type' => $question->type,
+                        'question' => $question->question,
+                        'points' => $question->points,
+                        'correctAnswer' => $question->correct_answer,
+                        'explanation' => $question->explanation,
+                        'options' => $question->options,
+                        'required' => $question->required,
+                    ];
+                }),
+                'courseId' => $quizSetting->course_id,
+                'createdAt' => $quizSetting->created_at->toISOString(),
+                'updatedAt' => $quizSetting->updated_at->toISOString(),
+            ];
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Quiz retrieved successfully!',
+                'data' => $formattedQuiz
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function destroy($id)
     {
