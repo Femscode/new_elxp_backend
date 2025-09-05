@@ -144,7 +144,7 @@ class AssignmentController extends Controller
     {
         try {
             $user = Auth::user();
-            $assignment = Assignment::where('content_id',$id)->first();
+            $assignment = Assignment::find($id);
 
             if (!$assignment) {
                 return response()->json([
@@ -536,7 +536,7 @@ class AssignmentController extends Controller
     }
 
 
-    public function destroy($id)
+    public function olddestroy($id)
     {
         try {
             $user = Auth::user();
@@ -565,6 +565,53 @@ class AssignmentController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Assignment deleted successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $user = Auth::user();
+            $assignment = Assignment::find($id);
+
+            if (!$assignment) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Assignment not found .'
+                ], 404);
+            }
+
+            // Find and delete the associated content record
+            $content = Content::where('contentable_id', $assignment->id)
+                ->where('contentable_type', Assignment::class)
+                ->first();
+
+            if ($content) {
+                $content->delete();
+            }
+
+            // Delete related rubrics and their levels (cascade)
+            $rubrics = Rubric::where('assignment_id', $assignment->id)->get();
+            foreach ($rubrics as $rubric) {
+                RubricLevel::where('rubric_id', $rubric->id)->delete();
+                $rubric->delete();
+            }
+
+            // Delete related resources
+            Resource::where('assignment_id', $assignment->id)->delete();
+
+            // Delete the assignment
+            $assignment->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Assignment and associated content deleted successfully!'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
