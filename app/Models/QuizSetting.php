@@ -21,6 +21,7 @@ class QuizSetting extends Model
         'course_id',
         'status',
         'user_id',
+        'content_id'
     ];
 
     protected $casts = [
