@@ -484,7 +484,7 @@ class AssignmentController extends Controller
 
             // Format response for single assignment
             $formattedAssignment = [
-                'id' => $assignment->uuid,
+                'id' => $assignment->id,
                 'title' => $assignment->title,
                 'description' => $assignment->description,
                 'instructions' => $assignment->instructions,
