@@ -388,7 +388,7 @@ class AssignmentController extends Controller
 
             $assignments = Assignment::with(['course', 'rubrics.levels', 'resources'])
                 ->where('content_id', $content_id)
-                ->get();
+                ->first();
 
             if ($assignments->isEmpty()) {
                 return response()->json([
