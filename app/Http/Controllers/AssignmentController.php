@@ -390,12 +390,12 @@ class AssignmentController extends Controller
                 ->where('content_id', $content_id)
                 ->first();
 
-            if ($assignments->isEmpty()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No assignments found for this content.'
-                ], 404);
-            }
+            // if ($assignments->isEmpty()) {
+            //     return response()->json([
+            //         'status' => false,
+            //         'message' => 'No assignments found for this content.'
+            //     ], 404);
+            // }
 
             // Format response for all assignments
             $formattedAssignments = $assignments->map(function ($assignment) {
