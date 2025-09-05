@@ -200,6 +200,7 @@ class AssignmentController extends Controller
             // Update assignment
             $assignment->update(collect($validated)->except(['rubric', 'resources'])->toArray());
 
+            return $assignment;
             // Handle Rubrics update
             if (isset($validated['rubric'])) {
                 $updatedRubricIds = [];
