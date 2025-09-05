@@ -34,13 +34,13 @@ class AssignmentController extends Controller
                 'status' => 'in:draft,published,archived',
 
                 // Rubric is required
-                'rubric' => 'required|array|min:1',
-                'rubric.*.name' => 'required|string|max:255',
-                'rubric.*.description' => 'required|string',
-                'rubric.*.levels' => 'required|array|min:1',
-                'rubric.*.levels.*.name' => 'required|string|max:255',
-                'rubric.*.levels.*.points' => 'required|integer|min:0',
-                'rubric.*.levels.*.description' => 'required|string',
+                'rubric' => 'sometimes|array|min:1',
+                'rubric.*.name' => 'sometimes|string|max:255',
+                'rubric.*.description' => 'sometimes|string',
+                'rubric.*.levels' => 'sometimes|array|min:1',
+                'rubric.*.levels.*.name' => 'sometimes|string|max:255',
+                'rubric.*.levels.*.points' => 'sometimes|integer|min:0',
+                'rubric.*.levels.*.description' => 'sometimes|string',
 
                 // Resources are optional
                 'resources' => 'nullable|array',
@@ -84,22 +84,24 @@ class AssignmentController extends Controller
                 ]);
             }
             // Handle Rubrics (mandatory)
-            foreach ($validated['rubric'] as $rubricData) {
-                $rubric = Rubric::create([
-                    'uuid' => Str::uuid(),
-                    'assignment_id' => $assignment->id,
-                    'name' => $rubricData['name'],
-                    'description' => $rubricData['description'],
-                ]);
-
-                foreach ($rubricData['levels'] as $levelData) {
-                    RubricLevel::create([
+            if (isset($validated['rubric'])) {
+                foreach ($validated['rubric'] as $rubricData) {
+                    $rubric = Rubric::create([
                         'uuid' => Str::uuid(),
-                        'rubric_id' => $rubric->id,
-                        'name' => $levelData['name'],
-                        'points' => $levelData['points'],
-                        'description' => $levelData['description'],
+                        'assignment_id' => $assignment->id,
+                        'name' => $rubricData['name'],
+                        'description' => $rubricData['description'],
                     ]);
+
+                    foreach ($rubricData['levels'] as $levelData) {
+                        RubricLevel::create([
+                            'uuid' => Str::uuid(),
+                            'rubric_id' => $rubric->id,
+                            'name' => $levelData['name'],
+                            'points' => $levelData['points'],
+                            'description' => $levelData['description'],
+                        ]);
+                    }
                 }
             }
 
@@ -446,7 +448,6 @@ class AssignmentController extends Controller
                 'message' => 'Assignments retrieved successfully!',
                 'data' => $formattedAssignments
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -456,13 +457,13 @@ class AssignmentController extends Controller
     }
 
 
-        public function fetch($content_id)
+    public function fetch($content_id)
     {
         try {
             $user = Auth::user();
 
             $assignment = Assignment::with(['course', 'rubrics.levels', 'resources'])
-                ->where('content_id',$content_id)
+                ->where('content_id', $content_id)
                 ->first();
 
             if (!$assignment) {
@@ -519,7 +520,6 @@ class AssignmentController extends Controller
                 'message' => 'Assignment retrieved successfully!',
                 'data' => $formattedAssignment
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
