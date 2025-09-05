@@ -58,6 +58,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/create', [CourseController::class, 'createContent'])->name('create-content');
         Route::post('/update', [CourseController::class, 'updateContent'])->name('update-content');
         Route::get('/fetch/{id}', [CourseController::class, 'fetchContent'])->name('fetch-content');
+        Route::get('/fetchdata/{id}', [CourseController::class, 'fetchContentData'])->name('fetch-content');
         Route::delete('/delete/{id}', [CourseController::class, 'deleteContent'])->name('delete-content');
     });
 
