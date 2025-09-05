@@ -144,7 +144,7 @@ class AssignmentController extends Controller
     {
         try {
             $user = Auth::user();
-            $assignment = Assignment::find($id);
+            $assignment = Assignment::where('content_id',$id);
 
             if (!$assignment) {
                 return response()->json([
