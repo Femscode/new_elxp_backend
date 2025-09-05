@@ -200,7 +200,7 @@ class AssignmentController extends Controller
             // Update assignment
             $assignment->update(collect($validated)->except(['rubric', 'resources'])->toArray());
 
-            return $assignment;
+            // return $assignment;
             // Handle Rubrics update
             if (isset($validated['rubric'])) {
                 $updatedRubricIds = [];
@@ -313,7 +313,7 @@ class AssignmentController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Assignment updated successfully!',
-                'data' => $assignment->with(['course', 'rubrics.levels', 'resources'])->first()
+                'data' => $assignment
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
