@@ -456,13 +456,14 @@ class AssignmentController extends Controller
     }
 
 
-        public function fetch($id)
+        public function fetch($content_id)
     {
         try {
             $user = Auth::user();
 
             $assignment = Assignment::with(['course', 'rubrics.levels', 'resources'])
-                ->find($id);
+                ->where('content_id',$content_id)
+                ->first();
 
             if (!$assignment) {
                 return response()->json([
