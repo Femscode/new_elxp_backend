@@ -404,6 +404,7 @@ class AssignmentController extends Controller
                     'title' => $assignment->title,
                     'description' => $assignment->description,
                     'instructions' => $assignment->instructions,
+                    'content_id' => $assignment->content_id,
                     'dueDate' => $assignment->due_date ? $assignment->due_date->toISOString() : null,
                     'points' => $assignment->points,
                     'submissionType' => $assignment->submission_type,
