@@ -361,9 +361,10 @@ class QuizController extends Controller
 
             // Format response for single quiz
             $formattedQuiz = [
-                'id' => $quizSetting->uuid,
+                'id' => $quizSetting->id,
                 'title' => $quizSetting->title,
                 'description' => $quizSetting->description,
+                'content_id' => $quizSetting->content_id,
                 'timeLimit' => $quizSetting->time_limit,
                 'attempts' => $quizSetting->attempts,
                 'passingScore' => $quizSetting->passing_score,
@@ -412,6 +413,15 @@ class QuizController extends Controller
                 ], 404);
             }
 
+            // Find and delete the associated content record
+            $content = Content::where('contentable_id', $quizSetting->id)
+                ->where('contentable_type', QuizSetting::class)
+                ->first();
+
+            if ($content) {
+                $content->delete();
+            }
+
             // Delete related questions
             QuizQuestions::where('quiz_setting_id', $quizSetting->id)->delete();
 
@@ -420,7 +430,7 @@ class QuizController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Quiz deleted successfully!'
+                'message' => 'Quiz and associated content deleted successfully!'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

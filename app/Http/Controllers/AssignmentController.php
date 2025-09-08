@@ -392,80 +392,6 @@ class AssignmentController extends Controller
         }
     }
 
-    public function oldfetch($id)
-    {
-        try {
-            $user = Auth::user();
-
-            $assignments = Assignment::with(['course', 'rubrics.levels', 'resources'])
-                ->find($id)
-                ->get();
-
-            if ($assignments->isEmpty()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No assignments found for this content.'
-                ], 404);
-            }
-
-            // Format response for all assignments
-            $formattedAssignments = $assignments->map(function ($assignment) {
-                return [
-                    'id' => $assignment->uuid,
-                    'title' => $assignment->title,
-                    'description' => $assignment->description,
-                    'instructions' => $assignment->instructions,
-                    'content_id' => $assignment->content_id,
-                    'dueDate' => $assignment->due_date ? $assignment->due_date->toISOString() : null,
-                    'points' => $assignment->points,
-                    'submissionType' => $assignment->submission_type,
-                    'allowedFileTypes' => $assignment->allowed_file_types,
-                    'maxFileSize' => $assignment->max_file_size,
-                    'attempts' => $assignment->attempts,
-                    'rubric' => $assignment->rubrics->map(function ($rubric) {
-                        return [
-                            'id' => $rubric->uuid,
-                            'name' => $rubric->name,
-                            'description' => $rubric->description,
-                            'points' => $rubric->levels->sum('points'),
-                            'levels' => $rubric->levels->map(function ($level) {
-                                return [
-                                    'name' => $level->name,
-                                    'points' => $level->points,
-                                    'description' => $level->description,
-                                ];
-                            })
-                        ];
-                    }),
-                    'resources' => $assignment->resources->map(function ($resource) {
-                        return [
-                            'id' => $resource->uuid,
-                            'name' => $resource->name,
-                            'type' => $resource->type,
-                            'url' => $resource->url,
-                            'description' => $resource->description,
-                        ];
-                    }),
-                    'courseId' => $assignment->course_uuid,
-                    'createdAt' => $assignment->created_at->toISOString(),
-                    'updatedAt' => $assignment->updated_at->toISOString(),
-                ];
-            });
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Assignments retrieved successfully!',
-                'data' => $formattedAssignments
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-
     public function fetch($content_id)
     {
         try {
@@ -528,45 +454,6 @@ class AssignmentController extends Controller
                 'status' => true,
                 'message' => 'Assignment retrieved successfully!',
                 'data' => $formattedAssignment
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-
-    public function olddestroy($id)
-    {
-        try {
-            $user = Auth::user();
-            $assignment = Assignment::find($id);
-
-            if (!$assignment) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Assignment not found .'
-                ], 404);
-            }
-
-            // Delete related rubrics and their levels (cascade)
-            $rubrics = Rubric::where('assignment_id', $assignment->id)->get();
-            foreach ($rubrics as $rubric) {
-                RubricLevel::where('rubric_id', $rubric->id)->delete();
-                $rubric->delete();
-            }
-
-            // Delete related resources
-            Resource::where('assignment_id', $assignment->id)->delete();
-
-            // Delete the assignment
-            $assignment->delete();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Assignment deleted successfully!'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

@@ -322,7 +322,7 @@ class SurveyController extends Controller
         }
     }
 
-        public function fetch($content_id)
+    public function fetch($content_id)
     {
         try {
             $user = Auth::user();
@@ -340,9 +340,10 @@ class SurveyController extends Controller
 
             // Format response for single survey
             $formattedSurvey = [
-                'id' => $survey->uuid,
+                'id' => $survey->id,
                 'title' => $survey->title,
                 'description' => $survey->description,
+                'content_id' => $survey->content_id,
                 'anonymous' => $survey->anonymous,
                 'allowMultipleResponses' => $survey->allow_multiple_responses,
                 'showResults' => $survey->show_results,
@@ -389,6 +390,15 @@ class SurveyController extends Controller
                 ], 404);
             }
 
+            // Find and delete the associated content record
+            $content = Content::where('contentable_id', $survey->id)
+                ->where('contentable_type', Survey::class)
+                ->first();
+
+            if ($content) {
+                $content->delete();
+            }
+
             // Delete related questions
             SurveyQuestion::where('survey_id', $survey->id)->delete();
 
@@ -397,7 +407,7 @@ class SurveyController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Survey deleted successfully!'
+                'message' => 'Survey and associated content deleted successfully!'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
