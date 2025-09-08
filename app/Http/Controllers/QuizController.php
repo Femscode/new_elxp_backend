@@ -119,7 +119,7 @@ class QuizController extends Controller
     {
         try {
             $user = Auth::user();
-            $quizSetting = QuizSetting::find($id);
+            $quizSetting = QuizSetting::where('content_id',$id)->first();
 
             if (!$quizSetting) {
                 return response()->json([
