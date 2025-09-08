@@ -24,7 +24,7 @@ class QuizController extends Controller
                 'time_limit' => 'required|integer|min:1',
                 'attempts' => 'required|integer|min:1',
                 'passing_score' => 'required|integer|min:0',
-                'course_id' => 'required|exists:courses,id',
+                'course_id' => 'required|exists:courses,uuid',
                 'content_id' => 'required|exists:course_contents,id',
                 'status' => 'in:draft,published,archived',
                 'settings' => 'required|array',
@@ -134,7 +134,7 @@ class QuizController extends Controller
                 'time_limit' => 'sometimes|integer|min:1',
                 'attempts' => 'sometimes|integer|min:1',
                 'passing_score' => 'sometimes|integer|min:0',
-                'course_id' => 'sometimes|exists:courses,id',
+                'course_id' => 'sometimes|exists:courses,uuid',
                 'content_id' => 'sometimes|exists:course_contents,id',
                 'status' => 'sometimes|in:draft,published,archived',
                 'settings' => 'sometimes|array',
@@ -248,7 +248,7 @@ class QuizController extends Controller
 
             // Format response to match requirements
             $formattedQuiz = [
-                'id' => $quizSetting->uuid,
+                'id' => $quizSetting->id,
                 'title' => $quizSetting->title,
                 'description' => $quizSetting->description,
                 'timeLimit' => $quizSetting->time_limit,

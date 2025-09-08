@@ -22,7 +22,7 @@ class SurveyController extends Controller
                 // Survey fields
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
-                'course_id' => 'required|exists:courses,id',
+                'course_id' => 'required|exists:courses,uuid',
                 'content_id' => 'required|exists:course_contents,id',
                 'status' => 'in:draft,published,archived',
                 'anonymous' => 'boolean',
@@ -122,7 +122,7 @@ class SurveyController extends Controller
             $validator = Validator::make($request->all(), [
                 'title' => 'sometimes|string|max:255',
                 'description' => 'sometimes|string',
-                'course_id' => 'sometimes|exists:courses,id',
+                'course_id' => 'sometimes|exists:courses,uuid',
                 'content_id' => 'sometimes|exists:course_contents,id',
                 'status' => 'sometimes|in:draft,published,archived',
                 'anonymous' => 'sometimes|boolean',
@@ -231,7 +231,7 @@ class SurveyController extends Controller
 
             // Format response to match requirements
             $formattedSurvey = [
-                'id' => $survey->uuid,
+                'id' => $survey->id,
                 'title' => $survey->title,
                 'description' => $survey->description,
                 'anonymous' => $survey->anonymous,
