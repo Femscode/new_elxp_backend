@@ -110,7 +110,7 @@ class SurveyController extends Controller
     {
         try {
             $user = Auth::user();
-            $survey = Survey::find($id);
+            $survey = Survey::where('content_id',$id)->first();
 
             if (!$survey) {
                 return response()->json([
