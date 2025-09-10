@@ -20,7 +20,6 @@ class SurveyQuestion extends Model
         'options',
         'likert_options',
         'scale',
-        'textAnswer',
     ];
 
     protected $casts = [
