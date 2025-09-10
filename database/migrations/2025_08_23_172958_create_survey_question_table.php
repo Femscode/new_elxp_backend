@@ -19,7 +19,6 @@ class CreateSurveyQuestionTable extends Migration
             $table->foreignId('survey_id')->constrained('survey')->onDelete('cascade');
             $table->string('type'); // multiple-choice, checkbox, rating, text, textarea, likert
             $table->text('question');
-            $table->text('textAnswer');
             $table->boolean('required')->default(false);
             $table->json('options')->nullable();        // for MC/checkbox
             $table->json('likert_options')->nullable(); // for likert
