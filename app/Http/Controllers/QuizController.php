@@ -129,6 +129,7 @@ class QuizController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
+                //validation
                 'title' => 'sometimes|string|max:255',
                 'description' => 'sometimes|string',
                 'time_limit' => 'sometimes|integer|min:1',
