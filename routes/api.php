@@ -10,6 +10,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CalenderController;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\MBIController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\SurveyController;
 use Illuminate\Http\Request;
@@ -133,6 +134,12 @@ Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function ()
     Route::get('show/{id}', [SurveyController::class, 'show'])->name("show_survey");
     Route::get('fetch/{id}', [SurveyController::class, 'fetch'])->name("fetch_survey");
     Route::delete('delete/{id}', [SurveyController::class, 'destroy'])->name("delete_survey");
+});
+
+Route::group(['prefix' => 'mbi'], function() {
+    Route::post('contact-us/save', [MBIController::class,'saveContact'])->name('saveContact');
+    Route::get('contact-us/fetch/{id}', [MBIController::class,'fetchContact'])->name('fetchContact');
+    Route::get('contact-us/fetchall', [MBIController::class,'fetchAllContact'])->name('fetchAllContact');
 });
 
 
