@@ -138,8 +138,12 @@ Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function ()
 
 Route::group(['prefix' => 'mbi'], function() {
     Route::post('contact-us/save', [MBIController::class,'saveContact'])->name('saveContact');
-    Route::get('contact-us/fetch/{id}', [MBIController::class,'fetchContact'])->name('fetchContact');
+    Route::get('contact-us/fetch/{id}', [MBIController::class,'fetchC ontact'])->name('fetchContact');
     Route::get('contact-us/fetchall', [MBIController::class,'fetchAllContact'])->name('fetchAllContact');
+    
+    Route::post('newsletter/save', [MBIController::class,'saveNewsletter'])->name('saveNewsletter');
+    Route::get('newsletter/fetch/{id}', [MBIController::class,'fetchNewsletter'])->name('fetchNewsletter');
+    Route::get('newsletter/fetchall', [MBIController::class,'fetchAllNewsletter'])->name('fetchAllNewsletter');
 });
 
 
