@@ -170,7 +170,7 @@ class CourseController extends Controller
 
              return response()->json([
                 'status' => true,
-                'data' => 'testong',
+                'data' => $request->all(),
                 'message' => 'Content Created Successfully!'
             ], 200);
             $validator = Validator::make($request->all(), [
