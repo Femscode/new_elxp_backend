@@ -168,6 +168,11 @@ class CourseController extends Controller
         try {
             $user = Auth::user();
 
+             return response()->json([
+                'status' => true,
+                'data' => 'testong',
+                'message' => 'Content Created Successfully!'
+            ], 200);
             $validator = Validator::make($request->all(), [
 
                 'course_id' => 'required|exists:courses,uuid',
@@ -181,6 +186,7 @@ class CourseController extends Controller
                 ], 401);
             }
             $data = $request->all();
+            
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $fileName = $file->hashName();
