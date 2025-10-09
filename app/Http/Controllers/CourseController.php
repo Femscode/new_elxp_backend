@@ -168,11 +168,7 @@ class CourseController extends Controller
         try {
             $user = Auth::user();
 
-             return response()->json([
-                'status' => true,
-                'data' => $request->all(),
-                'message' => 'Content Created Successfully!'
-            ], 200);
+            
             $validator = Validator::make($request->all(), [
 
                 'course_id' => 'required|exists:courses,uuid',
@@ -194,6 +190,7 @@ class CourseController extends Controller
                 $data['file'] = $fileName; // Store file path in data field
             }
             $content = Content::create($data);
+            $content['file'] = 'https://connectinskillz.com/elxp-backend/new_elxp_files/public/contentFiles/'.$content['file'];
             return response()->json([
                 'status' => true,
                 'data' => $content,
