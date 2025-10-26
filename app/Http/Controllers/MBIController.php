@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MBIContactUs;
 use App\Models\MBINewsletter;
+use App\Models\MBIWaitingList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -246,3 +247,4 @@ class MBIController extends Controller
             ], 500);
         }
     }
+}
