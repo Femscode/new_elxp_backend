@@ -206,5 +206,43 @@ class MBIController extends Controller
             ], 500);
         }
     }
-   
-}
+
+    public function saveWaitingList(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:m_b_i_waiting_lists,email',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()
+                ], 400);
+            }
+
+            $validated = $validator->validated();
+
+            // Create waiting list record
+            $waitingList = MBIWaitingList::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Waiting list subscription submitted successfully!',
+                'data' => [
+                    'id' => $waitingList->id,
+                    'name' => $waitingList->name, 
+                    'email' => $waitingList->email,
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }

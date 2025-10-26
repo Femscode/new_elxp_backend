@@ -144,6 +144,10 @@ Route::group(['prefix' => 'mbi'], function() {
     Route::post('newsletter/save', [MBIController::class,'saveNewsletter'])->name('saveNewsletter');
     Route::get('newsletter/fetch/{id}', [MBIController::class,'fetchNewsletter'])->name('fetchNewsletter');
     Route::get('newsletter/fetchall', [MBIController::class,'fetchAllNewsletter'])->name('fetchAllNewsletter');
+
+    Route::post('waiting-list/save', [MBIController::class,'saveWaitingList'])->name('saveWaitingList');
+    Route::get('waiting-list/fetch/{id}', [MBIController::class,'fetchWaitingList'])->name('fetchWaitingList');
+    Route::get('waiting-list/fetchall', [MBIController::class,'fetchAllWaitingList'])->name('fetchAllWaitingList');
 });
 
 
