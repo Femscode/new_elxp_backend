@@ -213,7 +213,7 @@ class MBIController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:m_b_i_waiting_lists,email',
+                'email' => 'required|email|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -225,6 +225,13 @@ class MBIController extends Controller
 
             $validated = $validator->validated();
 
+            $check = MBIWaitingList::where('email', $validated['email'])->first();
+            if ($check) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Email already exists in waiting list!',
+                ], 200);
+            }
             // Create waiting list record
             $waitingList = MBIWaitingList::create([
                 'name' => $validated['name'],
