@@ -75,24 +75,25 @@ class RegisteredUserController extends Controller
     }
     public function store2(Request $request)
     {
-      
-      
-        // dd($request->all());
+
+
         try {
-          
+
             // Validate the request
             $validator = Validator::make($request->all(), [
                 'first_name' => ['required', 'string', 'max:255'],
                 'last_name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
-               
+
             ]);
 
             // Check if validation fails
             if ($validator->fails()) {
-                
-                return response()->json(['message' => $validator->errors()], 400);
-        
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation Error',
+                    'errors' => $validator->errors()
+                ], 422);
             }
 
             // Create the user
@@ -102,7 +103,7 @@ class RegisteredUserController extends Controller
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'user_type' => 'learners'
-               
+
             ]);
 
             // Trigger the registered event
@@ -112,19 +113,19 @@ class RegisteredUserController extends Controller
             // Auth::login($user);
 
             // Return the response
-            try {
-                $email = $user->email;
-                $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
-                Mail::send('mail.welcome', $data, function ($message) use ($email) {
-                    $message->to($email)->subject('Welcome to CSLXP');
-                    $message->from('support@connectinskillz.com', 'Connectinskillz');
-                });
-                $data['message'] = 'Welcome Mail Sent Successfully!';
-            } catch (\Exception $e) {
-                $data['message'] = $e->getMessage();
-            }
-          
+            // try {
+            //     $email = $user->email;
+            //     $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
+            //     Mail::send('mail.welcome', $data, function ($message) use ($email) {
+            //         $message->to($email)->subject('Welcome to CSLXP');
+            //         $message->from('support@connectinskillz.com', 'Connectinskillz');
+            //     });
+            //     $data['message'] = 'Welcome Mail Sent Successfully!';
+            // } catch (\Exception $e) {
+            //     $data['message'] = $e->getMessage();
+            // }
 
+            $data['message'] = 'Welcome mail sent!';
             return response()->json([
                 'status' => true,
                 'message' => 'User created successfully',
@@ -134,7 +135,7 @@ class RegisteredUserController extends Controller
             ], 201);
         } catch (\Exception $e) {
             // Handle any unexpected exceptions
-            
+
             return response()->json([
                 'message' => 'Failed to create user',
                 'error' => $e->getMessage()
@@ -142,14 +143,15 @@ class RegisteredUserController extends Controller
         }
     }
 
-    public function update_password(Request $request) {
+    public function update_password(Request $request)
+    {
         try {
             // Validate the request
             $validator = Validator::make($request->all(), [
                 'uuid' => 'required',
                 // 'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
-               
+
             ]);
 
             // Check if validation fails
@@ -161,7 +163,7 @@ class RegisteredUserController extends Controller
             }
 
             // Create the user
-            $user = User::where('uuid',$request->uuid)->first();
+            $user = User::where('uuid', $request->uuid)->first();
 
             // If user doesn't exist, return error
             if (!$user) {
@@ -170,7 +172,7 @@ class RegisteredUserController extends Controller
 
             $user->password = Hash::make($request->password);
             $user->save();
-          
+
             // Log the user in
             Auth::login($user);
 
@@ -201,6 +203,7 @@ class RegisteredUserController extends Controller
             // Check if validation fails
             if ($validator->fails()) {
                 return response()->json([
+                    'status' => false,
                     'message' => 'Validation Error',
                     'errors' => $validator->errors()
                 ], 422);
@@ -208,7 +211,7 @@ class RegisteredUserController extends Controller
 
             // Check the user's credentials
             $user = User::where('email', $request->email)->first();
-           
+
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([

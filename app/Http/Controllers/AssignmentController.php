@@ -145,6 +145,7 @@ class AssignmentController extends Controller
         try {
             $user = Auth::user();
             $assignment = Assignment::find($id);
+          
             // return $assignment;
 
             if (!$assignment) {
@@ -156,7 +157,7 @@ class AssignmentController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'course_uuid' => 'sometimes|string|exists:courses,uuid',
-                'content_id' => 'sometimes|required',
+                'content_id' => 'required|exists:course_contents,id',
                 'title' => 'sometimes|string|max:255',
                 'description' => 'sometimes|string',
                 'instructions' => 'sometimes|string',
@@ -184,7 +185,7 @@ class AssignmentController extends Controller
                 'resources.*.id' => 'nullable|exists:resource,id',
                 'resources.*.name' => 'required_with:resources|string',
                 'resources.*.type' => 'nullable|in:link,file',
-                'resources.*.url' => 'required_with:resources|string',
+                'resources.*.url' => 'nullable|string',
                 'resources.*.description' => 'nullable|string',
             ]);
 
@@ -197,9 +198,21 @@ class AssignmentController extends Controller
 
             $validated = $validator->validated();
 
-            // Update assignment
-            $assignment->update(collect($validated)->except(['rubric', 'resources'])->toArray());
+            $assignmentUpdate = collect($validated)->except(['rubric', 'resources'])->toArray();
+            $assignment->update($assignmentUpdate);
 
+            $content = Content::find($assignment->content_id);
+            if ($content) {
+                $content->update([
+                    'title' => $assignment->title,
+                    'description' => $assignment->description,
+                    'contentType' => 'assignment',
+                    'contentable_id' => $assignment->id,
+                    'contentable_type' => Assignment::class,
+                ]);
+            }
+           
+          
             // return $assignment;
             // Handle Rubrics update
             if (isset($validated['rubric'])) {
@@ -286,7 +299,7 @@ class AssignmentController extends Controller
                             $resource->update([
                                 'name' => $resourceData['name'],
                                 'type' => $resourceData['type'] ?? 'file',
-                                'url' => $resourceData['url'],
+                                'url' => $resourceData['url'] ?? null,
                                 'description' => $resourceData['description'] ?? null,
                             ]);
                         }

@@ -19,9 +19,16 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*','https://nifinspired.connectinskillz.com','https://nifinspired.connectinskillz.com/api','http://localhost:3000'],
+    'allowed_origins' => [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'https://nifinspired.connectinskillz.com',
+        'https://nifinspired.connectinskillz.com/api',
+    ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => in_array(env('APP_ENV'), ['local', 'development'], true)
+        ? ['#^http://(localhost|127\.0\.0\.1)(:\d+)?$#']
+        : [],
 
     'allowed_headers' => ['*'],
 

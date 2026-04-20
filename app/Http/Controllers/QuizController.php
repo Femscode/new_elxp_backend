@@ -36,7 +36,7 @@ class QuizController extends Controller
 
                 // Questions
                 'questions' => 'required|array|min:1',
-                'questions.*.type' => 'required|string|in:multiple_choice,true_false,short_answer',
+                'questions.*.type' => 'required|string|in:multiple_choice,true_false,short_answer,essay',
                 'questions.*.question' => 'required|string',
                 'questions.*.points' => 'required|integer|min:1',
                 'questions.*.correct_answer' => [
@@ -258,7 +258,9 @@ class QuizController extends Controller
                 'settings' => $quizSetting->settings,
                 'questions' => $quizSetting->questions->map(function ($question) {
                     return [
-                        'id' => $question->uuid,
+                        'id' => $question->id,
+                        'uuid' => $question->uuid,
+                        'uuid' => $question->uuid,
                         'type' => $question->type,
                         'question' => $question->question,
                         'points' => $question->points,
@@ -372,7 +374,8 @@ class QuizController extends Controller
                 'settings' => $quizSetting->settings,
                 'questions' => $quizSetting->questions->map(function ($question) {
                     return [
-                        'id' => $question->uuid,
+                        'id' => $question->id,
+                        'uuid' => $question->uuid,
                         'type' => $question->type,
                         'question' => $question->question,
                         'points' => $question->points,

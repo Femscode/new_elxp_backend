@@ -18,17 +18,19 @@ class CourseController extends Controller
         try {
             $user = Auth::user();
 
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required',
-                // 'description' => 'required',
-                // 'price' => 'required',
+                'description' => 'required',
+                'price' => 'required',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => $validator
-                ], 401);
+                    'message' => 'Validation Error',
+                    'errors' => $validator->errors(),
+                ], 422);
             }
             $data = $request->except(['file', 'image']);
             $data['user_id'] = $data['instructor_id'] = $user->uuid;
@@ -61,7 +63,7 @@ class CourseController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required',
-                'course_id' => 'required',
+                'course_id' => 'required|exists:courses,uuid',
                 //  'contentType'=> 'text'
 
 
@@ -70,8 +72,9 @@ class CourseController extends Controller
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => $validator
-                ], 401);
+                    'message' => 'Validation Error',
+                    'errors' => $validator->errors(),
+                ], 422);
             }
             $data = $request->all();
             $section = Section::create($data);
@@ -110,25 +113,32 @@ class CourseController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'section_id' => 'required',
+                'section_id' => 'required|exists:course_sections,id',
+                'name' => 'sometimes|required|string|min:1',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => $validator
-                ], 401);
+                    'message' => 'Validation Error',
+                    'errors' => $validator->errors(),
+                ], 422);
             }
 
+            $section = Section::findOrFail($request->section_id);
 
+            if ($request->has('course_id') && $request->course_id !== $section->course_id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation Error',
+                    'errors' => ['course_id' => ['Selected course does not match this section.']],
+                ], 422);
+            }
 
             $data = collect($request->all())->except(['section_id'])->toArray();
-            $data['id'] = $request->section_id;
             $data = array_filter($data, function ($value) {
-                return !is_null($value) && $value !== '';
+                return !is_null($value);
             });
-
-            $section = Section::findOrFail($request->section_id);
             $section->update($data);
 
             return response()->json([
@@ -140,7 +150,7 @@ class CourseController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-            ], 401);
+            ], 500);
         }
     }
 
@@ -168,29 +178,45 @@ class CourseController extends Controller
         try {
             $user = Auth::user();
 
-            
+
             $validator = Validator::make($request->all(), [
 
                 'course_id' => 'required|exists:courses,uuid',
+                'section_id' => 'required|exists:course_sections,id',
                 'contentType' => 'required',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => $validator
-                ], 401);
+                    'message' => 'Validation Error',
+                    'errors' => $validator->errors(),
+                ], 422);
             }
-            $data = $request->all();
-            
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
+            $data = $request->except(['file', 'files', 'data', 'meta']);
+
+            $sectionBelongsToCourse = Section::where('id', $request->section_id)
+                ->where('course_id', $request->course_id)
+                ->exists();
+            if (! $sectionBelongsToCourse) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation Error',
+                    'errors' => ['section_id' => ['Selected section does not belong to the selected course.']],
+                ], 422);
+            }
+
+            $uploadKey = $request->hasFile('file') ? 'file' : ($request->hasFile('data') ? 'data' : null);
+            if ($uploadKey) {
+                $file = $request->file($uploadKey);
                 $fileName = $file->hashName();
                 $file->move(public_path('/contentFiles'), $fileName);
-                $data['file'] = $fileName; // Store file path in data field
+                $data['file'] = $fileName;
+                if ($request->contentType !== 'content') {
+                    $data['data'] = url('/contentFiles/' . $fileName);
+                }
             }
             $content = Content::create($data);
-            $content['file'] = 'https://connectinskillz.com/elxp-backend/new_elxp_files/public/contentFiles/'.$content['file'];
             return response()->json([
                 'status' => true,
                 'data' => $content,
@@ -204,315 +230,379 @@ class CourseController extends Controller
         }
     }
 
-    public function oldfetchContent($contentId)
+   
+
+    public function fetchContent($contentId)
     {
         try {
-            $content = Content::findOrFail($contentId);
+            $content = Content::with('contentable')->findOrFail($contentId);
+
+            // return true;
+            $response = [
+                'id' => $content->id,
+                'title' => $content->title,
+                'description' => $content->description,
+                'contentType' => $content->contentType,
+                'courseId' => $content->course_id,
+                'sectionId' => $content->section_id,
+                'data' => $content->data,
+            ];
+
+            $response['file'] = $content->file;
+            $fileUrls = [];
+            if (is_string($content->file) && $content->file !== '') {
+                $decoded = json_decode($content->file, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    foreach ($decoded as $name) {
+                        if (is_string($name) && $name !== '') {
+                            $fileUrls[] = url('/contentFiles/' . $name);
+                        }
+                    }
+                } else {
+                    $fileUrls[] = url('/contentFiles/' . $content->file);
+                }
+            }
+            $response['fileUrls'] = $fileUrls;
+            $response['fileUrl'] = $fileUrls[0] ?? null;
+
+            // Add the specific entity data based on content type
+            if ($content->contentable) {
+                switch ($content->contentType) {
+                    case 'assignment':
+                        $assignment = $content->contentable;
+                        $assignment->load(['rubrics.levels', 'resources']);
+                        $response['assignment'] = [
+                            'id' => $assignment->id,
+                            'uuid' => $assignment->uuid,
+                            'title' => $assignment->title,
+                            'description' => $assignment->description,
+                            'instructions' => $assignment->instructions,
+                            'dueDate' => $assignment->due_date?->toISOString(),
+                            'points' => $assignment->points,
+                            'submissionType' => $assignment->submission_type,
+                            'allowedFileTypes' => $assignment->allowed_file_types,
+                            'maxFileSize' => $assignment->max_file_size,
+                            'attempts' => $assignment->attempts,
+                            'status' => $assignment->status,
+                            'rubric' => $assignment->rubrics->map(function ($rubric) {
+                                return [
+                                    'id' => $rubric->id,
+                                    'uuid' => $rubric->uuid,
+                                    'name' => $rubric->name,
+                                    'description' => $rubric->description,
+                                    'levels' => $rubric->levels->map(function ($level) {
+                                        return [
+                                            'id' => $level->id,
+                                            'uuid' => $level->uuid,
+                                            'name' => $level->name,
+                                            'points' => $level->points,
+                                            'description' => $level->description,
+                                        ];
+                                    }),
+                                ];
+                            }),
+                            'resources' => $assignment->resources->map(function ($resource) {
+                                return [
+                                    'id' => $resource->id,
+                                    'uuid' => $resource->uuid,
+                                    'name' => $resource->name,
+                                    'type' => $resource->type,
+                                    'url' => $resource->url,
+                                    'description' => $resource->description,
+                                ];
+                            }),
+                        ];
+                        break;
+
+                    case 'quiz':
+                        $quiz = $content->contentable;
+                        $quiz->load('questions');
+                        $response['quiz'] = [
+                            'id' => $quiz->id,
+                            'uuid' => $quiz->uuid,
+                            'title' => $quiz->title,
+                            'description' => $quiz->description,
+                            'timeLimit' => $quiz->time_limit,
+                            'attempts' => $quiz->attempts,
+                            'passingScore' => $quiz->passing_score,
+                            'settings' => $quiz->settings,
+                            'status' => $quiz->status,
+                            'questions' => $quiz->questions->map(function ($question) {
+                                return [
+                                    'id' => $question->id,
+                                    'uuid' => $question->uuid,
+                                    'type' => $question->type,
+                                    'question' => $question->question,
+                                    'points' => $question->points,
+                                    'correctAnswer' => $question->correct_answer,
+                                    'explanation' => $question->explanation,
+                                    'options' => $question->options,
+                                    'required' => $question->required,
+                                ];
+                            }),
+                        ];
+                        break;
+
+                    case 'survey':
+                        $survey = $content->contentable;
+                        $survey->load('questions');
+                        $response['survey'] = [
+                            'id' => $survey->id,
+                            'uuid' => $survey->uuid,
+                            'title' => $survey->title,
+                            'description' => $survey->description,
+                            'anonymous' => $survey->anonymous,
+                            'allowMultipleResponses' => $survey->allow_multiple_responses,
+                            'showResults' => $survey->show_results,
+                            'status' => $survey->status,
+                            'questions' => $survey->questions->map(function ($question) {
+                                return [
+                                    'id' => $question->id,
+                                    'uuid' => $question->uuid,
+                                    'type' => $question->type,
+                                    'question' => $question->question,
+                                    'required' => $question->required,
+                                    'options' => $question->options,
+                                    'likertOptions' => $question->likert_options,
+                                    'scale' => $question->scale,
+                                ];
+                            }),
+                        ];
+                        break;
+
+                    default:
+                        // For other content types (file, video, etc.)
+                        $response['data'] = $content->data;
+                        $response['file'] = $content->file;
+                        break;
+                }
+            }
 
             return response()->json([
                 'status' => true,
-                'data' => $content,
+                'data' => $response,
                 'message' => 'Content Details Fetched Successfully!'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-            ], 401);
+            ], 404);
         }
     }
-
-    public function fetchContent($contentId)
-{
-    try {
-        $content = Content::with('contentable')->findOrFail($contentId);
-        
-        // return true;
-        $response = [
-            'id' => $content->id,
-            'title' => $content->title,
-            'description' => $content->description,
-            'contentType' => $content->contentType,
-            'courseId' => $content->course_id,
-            'sectionId' => $content->section_id,
-            'data' => $content->data,
-        ];
-
-        // Add the specific entity data based on content type
-        if ($content->contentable) {
-            switch ($content->contentType) {
-                case 'assignment':
-                    $assignment = $content->contentable;
-                    $assignment->load(['rubrics.levels', 'resources']);
-                    $response['assignment'] = [
-                        'id' => $assignment->uuid,
-                        'title' => $assignment->title,
-                        'description' => $assignment->description,
-                        'instructions' => $assignment->instructions,
-                        'dueDate' => $assignment->due_date?->toISOString(),
-                        'points' => $assignment->points,
-                        'submissionType' => $assignment->submission_type,
-                        'allowedFileTypes' => $assignment->allowed_file_types,
-                        'maxFileSize' => $assignment->max_file_size,
-                        'attempts' => $assignment->attempts,
-                        'status' => $assignment->status,
-                        'rubric' => $assignment->rubrics->map(function ($rubric) {
-                            return [
-                                'id' => $rubric->uuid,
-                                'name' => $rubric->name,
-                                'description' => $rubric->description,
-                                'levels' => $rubric->levels->map(function ($level) {
-                                    return [
-                                        'id' => $level->uuid,
-                                        'name' => $level->name,
-                                        'points' => $level->points,
-                                        'description' => $level->description,
-                                    ];
-                                }),
-                            ];
-                        }),
-                        'resources' => $assignment->resources->map(function ($resource) {
-                            return [
-                                'id' => $resource->uuid,
-                                'name' => $resource->name,
-                                'type' => $resource->type,
-                                'url' => $resource->url,
-                                'description' => $resource->description,
-                            ];
-                        }),
-                    ];
-                    break;
-
-                case 'quiz':
-                    $quiz = $content->contentable;
-                    $quiz->load('questions');
-                    $response['quiz'] = [
-                        'id' => $quiz->uuid,
-                        'title' => $quiz->title,
-                        'description' => $quiz->description,
-                        'timeLimit' => $quiz->time_limit,
-                        'attempts' => $quiz->attempts,
-                        'passingScore' => $quiz->passing_score,
-                        'settings' => $quiz->settings,
-                        'status' => $quiz->status,
-                        'questions' => $quiz->questions->map(function ($question) {
-                            return [
-                                'id' => $question->uuid,
-                                'type' => $question->type,
-                                'question' => $question->question,
-                                'points' => $question->points,
-                                'correctAnswer' => $question->correct_answer,
-                                'explanation' => $question->explanation,
-                                'options' => $question->options,
-                                'required' => $question->required,
-                            ];
-                        }),
-                    ];
-                    break;
-
-                case 'survey':
-                    $survey = $content->contentable;
-                    $survey->load('questions');
-                    $response['survey'] = [
-                        'id' => $survey->uuid,
-                        'title' => $survey->title,
-                        'description' => $survey->description,
-                        'anonymous' => $survey->anonymous,
-                        'allowMultipleResponses' => $survey->allow_multiple_responses,
-                        'showResults' => $survey->show_results,
-                        'status' => $survey->status,
-                        'questions' => $survey->questions->map(function ($question) {
-                            return [
-                                'id' => $question->uuid,
-                                'type' => $question->type,
-                                'question' => $question->question,
-                                'required' => $question->required,
-                                'options' => $question->options,
-                                'likertOptions' => $question->likert_options,
-                                'scale' => $question->scale,
-                            ];
-                        }),
-                    ];
-                    break;
-
-                default:
-                    // For other content types (file, video, etc.)
-                    $response['data'] = $content->data;
-                    $response['file'] = $content->file;
-                    break;
-            }
-        }
-
-        return response()->json([
-            'status' => true,
-            'data' => $response,
-            'message' => 'Content Details Fetched Successfully!'
-        ], 200);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-        ], 404);
-    }
-}
     public function fetchContentData($contentId)
-{
-    try {
-        $content = Content::with('contentable')->findOrFail($contentId);
-        
-        // return true;
-        $response = [
-            'id' => $content->id,
-            'title' => $content->title,
-            'description' => $content->description,
-            'contentType' => $content->contentType,
-            'courseId' => $content->course_id,
-            'sectionId' => $content->section_id,
-            'data' => $content->data,
-        ];
+    {
+        try {
+            $content = Content::with('contentable')->findOrFail($contentId);
 
-        // Add the specific entity data based on content type
-        if ($content->contentable) {
-            switch ($content->contentType) {
-                case 'assignment':
-                    $assignment = $content->contentable;
-                    $assignment->load(['rubrics.levels', 'resources']);
-                    $response['assignment'] = [
-                        'id' => $assignment->uuid,
-                        'title' => $assignment->title,
-                        'description' => $assignment->description,
-                        'instructions' => $assignment->instructions,
-                        'dueDate' => $assignment->due_date?->toISOString(),
-                        'points' => $assignment->points,
-                        'submissionType' => $assignment->submission_type,
-                        'allowedFileTypes' => $assignment->allowed_file_types,
-                        'maxFileSize' => $assignment->max_file_size,
-                        'attempts' => $assignment->attempts,
-                        'status' => $assignment->status,
-                        'rubric' => $assignment->rubrics->map(function ($rubric) {
-                            return [
-                                'id' => $rubric->uuid,
-                                'name' => $rubric->name,
-                                'description' => $rubric->description,
-                                'levels' => $rubric->levels->map(function ($level) {
-                                    return [
-                                        'id' => $level->uuid,
-                                        'name' => $level->name,
-                                        'points' => $level->points,
-                                        'description' => $level->description,
-                                    ];
-                                }),
-                            ];
-                        }),
-                        'resources' => $assignment->resources->map(function ($resource) {
-                            return [
-                                'id' => $resource->uuid,
-                                'name' => $resource->name,
-                                'type' => $resource->type,
-                                'url' => $resource->url,
-                                'description' => $resource->description,
-                            ];
-                        }),
-                    ];
-                    break;
+            // return true;
+            $response = [
+                'id' => $content->id,
+                'title' => $content->title,
+                'description' => $content->description,
+                'contentType' => $content->contentType,
+                'courseId' => $content->course_id,
+                'sectionId' => $content->section_id,
+                'data' => $content->data,
+            ];
 
-                case 'quiz':
-                    $quiz = $content->contentable;
-                    $quiz->load('questions');
-                    $response['quiz'] = [
-                        'id' => $quiz->uuid,
-                        'title' => $quiz->title,
-                        'description' => $quiz->description,
-                        'timeLimit' => $quiz->time_limit,
-                        'attempts' => $quiz->attempts,
-                        'passingScore' => $quiz->passing_score,
-                        'settings' => $quiz->settings,
-                        'status' => $quiz->status,
-                        'questions' => $quiz->questions->map(function ($question) {
-                            return [
-                                'id' => $question->uuid,
-                                'type' => $question->type,
-                                'question' => $question->question,
-                                'points' => $question->points,
-                                'correctAnswer' => $question->correct_answer,
-                                'explanation' => $question->explanation,
-                                'options' => $question->options,
-                                'required' => $question->required,
-                            ];
-                        }),
-                    ];
-                    break;
+            // Add the specific entity data based on content type
+            if ($content->contentable) {
+                switch ($content->contentType) {
+                    case 'assignment':
+                        $assignment = $content->contentable;
+                        $assignment->load(['rubrics.levels', 'resources']);
+                        $response['assignment'] = [
+                            'id' => $assignment->uuid,
+                            'title' => $assignment->title,
+                            'description' => $assignment->description,
+                            'instructions' => $assignment->instructions,
+                            'dueDate' => $assignment->due_date?->toISOString(),
+                            'points' => $assignment->points,
+                            'submissionType' => $assignment->submission_type,
+                            'allowedFileTypes' => $assignment->allowed_file_types,
+                            'maxFileSize' => $assignment->max_file_size,
+                            'attempts' => $assignment->attempts,
+                            'status' => $assignment->status,
+                            'rubric' => $assignment->rubrics->map(function ($rubric) {
+                                return [
+                                    'id' => $rubric->uuid,
+                                    'name' => $rubric->name,
+                                    'description' => $rubric->description,
+                                    'levels' => $rubric->levels->map(function ($level) {
+                                        return [
+                                            'id' => $level->uuid,
+                                            'name' => $level->name,
+                                            'points' => $level->points,
+                                            'description' => $level->description,
+                                        ];
+                                    }),
+                                ];
+                            }),
+                            'resources' => $assignment->resources->map(function ($resource) {
+                                return [
+                                    'id' => $resource->uuid,
+                                    'name' => $resource->name,
+                                    'type' => $resource->type,
+                                    'url' => $resource->url,
+                                    'description' => $resource->description,
+                                ];
+                            }),
+                        ];
+                        break;
 
-                case 'survey':
-                    $survey = $content->contentable;
-                    $survey->load('questions');
-                    $response['survey'] = [
-                        'id' => $survey->uuid,
-                        'title' => $survey->title,
-                        'description' => $survey->description,
-                        'anonymous' => $survey->anonymous,
-                        'allowMultipleResponses' => $survey->allow_multiple_responses,
-                        'showResults' => $survey->show_results,
-                        'status' => $survey->status,
-                        'questions' => $survey->questions->map(function ($question) {
-                            return [
-                                'id' => $question->uuid,
-                                'type' => $question->type,
-                                'question' => $question->question,
-                                'required' => $question->required,
-                                'options' => $question->options,
-                                'likertOptions' => $question->likert_options,
-                                'scale' => $question->scale,
-                            ];
-                        }),
-                    ];
-                    break;
+                    case 'quiz':
+                        $quiz = $content->contentable;
+                        $quiz->load('questions');
+                        $response['quiz'] = [
+                            'id' => $quiz->id,
+                            'uuid' => $quiz->uuid,
+                            'title' => $quiz->title,
+                            'description' => $quiz->description,
+                            'timeLimit' => $quiz->time_limit,
+                            'attempts' => $quiz->attempts,
+                            'passingScore' => $quiz->passing_score,
+                            'settings' => $quiz->settings,
+                            'status' => $quiz->status,
+                            'questions' => $quiz->questions->map(function ($question) {
+                                return [
+                                    'id' => $question->id,
+                                    'uuid' => $question->uuid,
+                                    'type' => $question->type,
+                                    'question' => $question->question,
+                                    'points' => $question->points,
+                                    'correctAnswer' => $question->correct_answer,
+                                    'explanation' => $question->explanation,
+                                    'options' => $question->options,
+                                    'required' => $question->required,
+                                ];
+                            }),
+                        ];
+                        break;
 
-                default:
-                    // For other content types (file, video, etc.)
-                    $response['data'] = $content->data;
-                    $response['file'] = $content->file;
-                    break;
+                    case 'survey':
+                        $survey = $content->contentable;
+                        $survey->load('questions');
+                        $response['survey'] = [
+                            'id' => $survey->uuid,
+                            'title' => $survey->title,
+                            'description' => $survey->description,
+                            'anonymous' => $survey->anonymous,
+                            'allowMultipleResponses' => $survey->allow_multiple_responses,
+                            'showResults' => $survey->show_results,
+                            'status' => $survey->status,
+                            'questions' => $survey->questions->map(function ($question) {
+                                return [
+                                    'id' => $question->uuid,
+                                    'type' => $question->type,
+                                    'question' => $question->question,
+                                    'required' => $question->required,
+                                    'options' => $question->options,
+                                    'likertOptions' => $question->likert_options,
+                                    'scale' => $question->scale,
+                                ];
+                            }),
+                        ];
+                        break;
+
+                    default:
+                        // For other content types (file, video, etc.)
+                        $response['data'] = $content->data;
+                        $response['file'] = $content->file;
+                        break;
+                }
             }
-        }
 
-        return response()->json([
-            'status' => true,
-            'data' => $response,
-            'message' => 'Content Details Fetched Successfully!'
-        ], 200);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-        ], 404);
+            return response()->json([
+                'status' => true,
+                'data' => $response,
+                'message' => 'Content Details Fetched Successfully!'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 404);
+        }
     }
-}
 
     public function updateContent(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'content_id' => 'required',
+                'content_id' => 'required|exists:course_contents,id',
+                'title' => 'sometimes|required|string|min:1',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => $validator
-                ], 401);
+                    'message' => 'Validation Error',
+                    'errors' => $validator->errors(),
+                ], 422);
             }
 
-            $data = $request->all();
+            $content = Content::findOrFail($request->content_id);
+
+            if ($request->has('course_id') && $request->course_id !== $content->course_id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation Error',
+                    'errors' => ['course_id' => ['Selected course does not match this content.']],
+                ], 422);
+            }
+
+            if ($request->has('section_id')) {
+                $sectionBelongsToCourse = Section::where('id', $request->section_id)
+                    ->where('course_id', $content->course_id)
+                    ->exists();
+                if (! $sectionBelongsToCourse) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Validation Error',
+                        'errors' => ['section_id' => ['Selected section does not belong to this course.']],
+                    ], 422);
+                }
+            }
+
+            $data = $request->except(['content_id', 'file', 'files', 'data', 'meta']);
             $data = array_filter($data, function ($value) {
-                return !is_null($value) && $value !== '';
+                return !is_null($value);
             });
 
-            $content = Content::findOrFail($request->content_id);
-            $data = collect($data)->except(['content_id'])->toArray();
-            $data['id'] = $request->content_id;
+            if ($request->hasFile('files')) {
+                $files = $request->file('files');
+                $fileNames = [];
+                $urls = [];
+
+                foreach ($files as $file) {
+                    $fileName = $file->hashName();
+                    $file->move(public_path('/contentFiles'), $fileName);
+                    $fileNames[] = $fileName;
+                    $urls[] = url('/contentFiles/' . $fileName);
+                }
+
+                $data['file'] = json_encode($fileNames);
+                if ($request->has('meta') && is_string($request->input('meta'))) {
+                    $data['data'] = $request->input('meta');
+                } elseif ($content->contentType !== 'content') {
+                    $data['data'] = json_encode($urls);
+                }
+            } else {
+                $uploadKey = $request->hasFile('file') ? 'file' : ($request->hasFile('data') ? 'data' : null);
+                if ($uploadKey) {
+                    $file = $request->file($uploadKey);
+                    $fileName = $file->hashName();
+                    $file->move(public_path('/contentFiles'), $fileName);
+                    $data['file'] = $fileName;
+                    if ($content->contentType !== 'content') {
+                        $data['data'] = url('/contentFiles/' . $fileName);
+                    }
+                } else if ($request->has('data') && is_string($request->input('data'))) {
+                    $data['data'] = $request->input('data');
+                }
+            }
+
             $content->update($data);
 
             return response()->json([
@@ -524,7 +614,7 @@ class CourseController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-            ], 401);
+            ], 500);
         }
     }
 
