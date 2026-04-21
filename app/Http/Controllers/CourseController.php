@@ -9,6 +9,7 @@ use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CourseController extends Controller
@@ -666,9 +667,16 @@ class CourseController extends Controller
         } elseif ($sectionId) {
             $query->where('section_id', $sectionId);
         } elseif ($courseId) {
-            $course = Course::with(['base_contents', 'sections' => function ($query) {
-                $query->with('contents');
-            }])->where('uuid', $courseId)->firstOrFail();
+            $course = Course::with([
+                'base_contents' => function ($query) {
+                    $query->orderBy('position');
+                }, 
+                'sections' => function ($query) {
+                    $query->orderBy('position')->with(['contents' => function ($q) {
+                        $q->orderBy('position');
+                    }]);
+                }
+            ])->where('uuid', $courseId)->firstOrFail();
 
             return response()->json([
                 'status' => true,
@@ -728,10 +736,10 @@ class CourseController extends Controller
                 $existingSectionIds = Section::where('course_id', $course->id)->pluck('id')->toArray();
                 $updatedSectionIds = [];
 
-                foreach ($courseData['sections'] as $sectionData) {
+                foreach ($courseData['sections'] as $sectionIndex => $sectionData) {
                     $section = Section::updateOrCreate(
                         ['id' => $sectionData['id'] ?? null, 'course_id' => $course->uuid], // Ensure correct course_id
-                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->toArray()
+                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->merge(['position' => $sectionIndex])->toArray()
                     );
 
                     $updatedSectionIds[] = $section->id;
@@ -741,10 +749,10 @@ class CourseController extends Controller
                         $existingContentIds = Content::where('section_id', $section->id)->where('course_id', $course->uuid)->pluck('id')->toArray();
                         $updatedContentIds = [];
 
-                        foreach ($sectionData['contents'] as $contentData) {
+                        foreach ($sectionData['contents'] as $contentIndex => $contentData) {
                             $content = Content::updateOrCreate(
                                 ['id' => $contentData['id'] ?? null, 'section_id' => $section->id, 'course_id' => $course->uuid], // Ensure correct section_id
-                                collect($contentData)->except(['created_at', 'updated_at'])->toArray()
+                                collect($contentData)->except(['created_at', 'updated_at'])->merge(['position' => $contentIndex])->toArray()
                             );
                             $updatedContentIds[] = $content->id;
                         }
@@ -764,9 +772,13 @@ class CourseController extends Controller
             }
 
             // Fetch updated course with relations
-            $updatedCourse = Course::with(['sections' => function ($query) {
-                $query->with('contents');
-            }])->where('uuid', $courseId)->firstOrFail();
+            $updatedCourse = Course::with([
+                'sections' => function ($query) {
+                    $query->orderBy('position')->with(['contents' => function ($q) {
+                        $q->orderBy('position');
+                    }]);
+                }
+            ])->where('uuid', $courseId)->firstOrFail();
 
             return response()->json([
                 'status' => true,
@@ -818,7 +830,7 @@ class CourseController extends Controller
             if (isset($courseData['sections'])) {
                 $updatedSectionIds = [];
 
-                foreach ($courseData['sections'] as $sectionData) {
+                foreach ($courseData['sections'] as $sectionIndex => $sectionData) {
                     if (isset($sectionData['id'])) {
                         // Update existing section
                         $section = Section::where('id', $sectionData['id'])
@@ -826,6 +838,7 @@ class CourseController extends Controller
                             ->firstOrFail();
                         $section->update(collect($sectionData)
                             ->except(['contents', 'created_at', 'updated_at'])
+                            ->merge(['position' => $sectionIndex])
                             ->toArray());
                     } else {
                         // Create new section
@@ -833,7 +846,7 @@ class CourseController extends Controller
                             collect($sectionData)
                                 ->except(['contents', 'created_at', 'updated_at'])
                                 ->toArray(),
-                            ['course_id' => $course->id]
+                            ['course_id' => $course->id, 'position' => $sectionIndex]
                         ));
                     }
 
@@ -843,7 +856,7 @@ class CourseController extends Controller
                     if (isset($sectionData['contents'])) {
                         $updatedContentIds = [];
 
-                        foreach ($sectionData['contents'] as $contentData) {
+                        foreach ($sectionData['contents'] as $contentIndex => $contentData) {
                             if (isset($contentData['id'])) {
                                 // Update existing content
                                 $content = Content::where('id', $contentData['id'])
@@ -851,6 +864,7 @@ class CourseController extends Controller
                                     ->firstOrFail();
                                 $content->update(collect($contentData)
                                     ->except(['created_at', 'updated_at'])
+                                    ->merge(['position' => $contentIndex])
                                     ->toArray());
                             } else {
                                 // Create new content
@@ -860,7 +874,8 @@ class CourseController extends Controller
                                         ->toArray(),
                                     [
                                         'section_id' => $section->id,
-                                        'course_id' => $course->id
+                                        'course_id' => $course->id,
+                                        'position' => $contentIndex
                                     ]
                                 ));
                             }
@@ -881,9 +896,13 @@ class CourseController extends Controller
             }
 
             // Fetch updated course with relations
-            $updatedCourse = Course::with(['sections' => function ($query) {
-                $query->with('contents');
-            }])->where('uuid', $courseId)->firstOrFail();
+            $updatedCourse = Course::with([
+                'sections' => function ($query) {
+                    $query->orderBy('position')->with(['contents' => function ($q) {
+                        $q->orderBy('position');
+                    }]);
+                }
+            ])->where('uuid', $courseId)->firstOrFail();
 
             return response()->json([
                 'status' => true,
@@ -995,5 +1014,112 @@ class CourseController extends Controller
             'status' => true,
             'message' => 'Course Deleted Successfully!'
         ], 200);
+    }
+
+    public function duplicateSection($id)
+    {
+        DB::beginTransaction();
+        try {
+            $section = Section::with('contents')->findOrFail($id);
+            
+            // Shift subsequent sections
+            Section::where('course_id', $section->course_id)
+                ->where('position', '>', $section->position)
+                ->increment('position');
+
+            $newSection = $section->replicate();
+            $newSection->name = $section->name . ' (Copy)';
+            $newSection->position = $section->position + 1; 
+            $newSection->push();
+
+            foreach ($section->contents as $content) {
+                $this->duplicateContentModel($content, $newSection->id, true);
+            }
+            DB::commit();
+            return response()->json(['status' => true, 'message' => 'Section duplicated successfully!']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function duplicateContent($id)
+    {
+        DB::beginTransaction();
+        try {
+            $content = Content::findOrFail($id);
+            $this->duplicateContentModel($content, $content->section_id);
+            DB::commit();
+            return response()->json(['status' => true, 'message' => 'Content duplicated successfully!']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    private function duplicateContentModel($content, $newSectionId, $isSectionDuplication = false)
+    {
+        // Shift subsequent contents if not a section duplication (where we just copy into a new empty section)
+        if (!$isSectionDuplication) {
+            Content::where('section_id', $newSectionId)
+                ->where('position', '>', $content->position)
+                ->increment('position');
+        }
+
+        $newContent = $content->replicate();
+        $newContent->section_id = $newSectionId;
+        $newContent->title = $content->title . ' (Copy)';
+        $newContent->position = $content->position + 1;
+        
+        if ($content->contentable) {
+            $contentable = $content->contentable;
+            $newContentable = $contentable->replicate();
+            if (isset($newContentable->uuid)) {
+                $newContentable->uuid = (string) Str::uuid();
+            }
+            $newContentable->push();
+            
+            $newContent->contentable_id = $newContentable->id;
+            switch ($content->contentType) {
+                case 'quiz':
+                    foreach ($contentable->questions as $q) {
+                        $nQ = $q->replicate();
+                        if(isset($nQ->uuid)) $nQ->uuid = (string) Str::uuid();
+                        $nQ->quiz_setting_id = $newContentable->id;
+                        $nQ->push();
+                    }
+                    break;
+                case 'survey':
+                    foreach ($contentable->questions as $q) {
+                        $nQ = $q->replicate();
+                        if(isset($nQ->uuid)) $nQ->uuid = (string) Str::uuid();
+                        $nQ->survey_id = $newContentable->id;
+                        $nQ->push();
+                    }
+                    break;
+                case 'assignment':
+                    foreach ($contentable->rubrics as $rubric) {
+                        $nRubric = $rubric->replicate();
+                        if(isset($nRubric->uuid)) $nRubric->uuid = (string) Str::uuid();
+                        $nRubric->assignment_id = $newContentable->id;
+                        $nRubric->push();
+                        foreach ($rubric->levels as $level) {
+                            $nLevel = $level->replicate();
+                            if(isset($nLevel->uuid)) $nLevel->uuid = (string) Str::uuid();
+                            $nLevel->rubric_id = $nRubric->id;
+                            $nLevel->push();
+                        }
+                    }
+                    foreach ($contentable->resources as $res) {
+                        $nRes = $res->replicate();
+                        if(isset($nRes->uuid)) $nRes->uuid = (string) Str::uuid();
+                        $nRes->assignment_id = $newContentable->id;
+                        $nRes->push();
+                    }
+                    break;
+            }
+        }
+        $newContent->push();
+        return $newContent;
     }
 }

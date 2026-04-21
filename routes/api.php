@@ -54,6 +54,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/update', [CourseController::class, 'updateSection'])->name('update-section');
         Route::get('/fetch/{id}', [CourseController::class, 'fetchSection'])->name('fetch-section');
         Route::delete('/delete/{id}', [CourseController::class, 'deleteSection'])->name('delete-section');
+        Route::post('/duplicate/{id}', [CourseController::class, 'duplicateSection'])->name('duplicate-section');
     });
     Route::group(['prefix' => 'content'], function () {
         Route::post('/create', [CourseController::class, 'createContent'])->name('create-content');
@@ -61,6 +62,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/fetch/{id}', [CourseController::class, 'fetchContent'])->name('fetch-content');
         Route::get('/fetchdata/{id}', [CourseController::class, 'fetchContentData'])->name('fetch-content');
         Route::delete('/delete/{id}', [CourseController::class, 'deleteContent'])->name('delete-content');
+        Route::post('/duplicate/{id}', [CourseController::class, 'duplicateContent'])->name('duplicate-content');
     });
 
 

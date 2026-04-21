@@ -180,22 +180,25 @@ class QuizController extends Controller
                 $updatedQuestionIds = [];
 
                 foreach ($validated['questions'] as $questionData) {
+                    $question = null;
                     if (isset($questionData['id'])) {
-                        // Update existing question
+                        // Attempt to find existing question
                         $question = QuizQuestions::where('id', $questionData['id'])
                             ->where('quiz_setting_id', $quizSetting->id)
                             ->first();
-                        if ($question) {
-                            $question->update([
-                                'type' => $questionData['type'],
-                                'question' => $questionData['question'],
-                                'points' => $questionData['points'],
-                                'correct_answer' => $questionData['correct_answer'],
-                                'options' => $questionData['options'] ?? [],
-                                'explanation' => $questionData['explanation'] ?? null,
-                                'required' => $questionData['required'] ?? false,
-                            ]);
-                        }
+                    }
+
+                    if ($question) {
+                        // Update existing question
+                        $question->update([
+                            'type' => $questionData['type'],
+                            'question' => $questionData['question'],
+                            'points' => $questionData['points'],
+                            'correct_answer' => $questionData['correct_answer'],
+                            'options' => $questionData['options'] ?? [],
+                            'explanation' => $questionData['explanation'] ?? null,
+                            'required' => $questionData['required'] ?? false,
+                        ]);
                     } else {
                         // Create new question
                         $question = QuizQuestions::create([

@@ -9,7 +9,7 @@ class Course extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $fillable = ['title', 'description', 'price','image', 'course_code','user_id', 'instructor_id','status','uuid'];
+    protected $fillable = ['title', 'description',  'price', 'image', 'course_code', 'user_id', 'instructor_id', 'status', 'uuid'];
     protected $table = 'courses';
     protected $hidden = ['created_at', 'updated_at'];
 
@@ -29,8 +29,7 @@ class Course extends Model
     }
     public function base_contents()
     {
-          return $this->hasMany(Content::class, 'course_id', 'uuid')
-                ->whereNull('section_id');
+        return $this->hasMany(Content::class, 'course_id', 'uuid')
+            ->whereNull('section_id');
     }
-
 }
