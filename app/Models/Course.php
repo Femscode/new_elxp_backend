@@ -32,4 +32,9 @@ class Course extends Model
         return $this->hasMany(Content::class, 'course_id', 'uuid')
             ->whereNull('section_id');
     }
+
+    public function getImageAttribute($value)
+    {
+        return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/courseImages/' . $value;
+    }
 }
