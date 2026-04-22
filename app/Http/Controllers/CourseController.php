@@ -250,21 +250,27 @@ class CourseController extends Controller
             ];
 
             $response['file'] = $content->file;
-            $fileUrls = [];
-            if (is_string($content->file) && $content->file !== '') {
-                $decoded = json_decode($content->file, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    foreach ($decoded as $name) {
-                        if (is_string($name) && $name !== '') {
-                            $fileUrls[] = url('/contentFiles/' . $name);
-                        }
-                    }
-                } else {
-                    $fileUrls[] = url('/contentFiles/' . $content->file);
-                }
-            }
-            $response['fileUrls'] = $fileUrls;
-            $response['fileUrl'] = $fileUrls[0] ?? null;
+
+            $response['fileUrls'] = is_array($content->file)
+                ? $content->file
+                : ($content->file ? [$content->file] : []);
+
+            $response['fileUrl'] = $response['fileUrls'][0] ?? null;
+            // $fileUrls = [];
+            // if (is_string($content->file) && $content->file !== '') {
+            //     $decoded = json_decode($content->file, true);
+            //     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            //         foreach ($decoded as $name) {
+            //             if (is_string($name) && $name !== '') {
+            //                 $fileUrls[] = url('/contentFiles/' . $name);
+            //             }
+            //         }
+            //     } else {
+            //         $fileUrls[] = url('/contentFiles/' . $content->file);
+            //     }
+            // }
+            // $response['fileUrls'] = $fileUrls;
+            // $response['fileUrl'] = $fileUrls[0] ?? null;
 
             // Add the specific entity data based on content type
             if ($content->contentable) {
