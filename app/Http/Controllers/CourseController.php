@@ -231,7 +231,7 @@ class CourseController extends Controller
         }
     }
 
-   
+
 
     public function fetchContent($contentId)
     {
@@ -670,7 +670,7 @@ class CourseController extends Controller
             $course = Course::with([
                 'base_contents' => function ($query) {
                     $query->orderBy('position');
-                }, 
+                },
                 'sections' => function ($query) {
                     $query->orderBy('position')->with(['contents' => function ($q) {
                         $q->orderBy('position');
@@ -955,9 +955,10 @@ class CourseController extends Controller
             $data['user_id'] = $data['instructor_id'] = $user->uuid;
             if ($request->has('image') && $request->image !== null) {
                 // Check if there is an existing image and delete it
-                $existingImage = $course->image; // Assuming $course is your model instance
-                if ($existingImage && file_exists(public_path('/courseImages/' . $existingImage))) {
-                    unlink(public_path('/courseImages/' . $existingImage));
+                $existingImage = $course->getRawOriginal('image');
+
+                if ($existingImage && file_exists(public_path('courseImages/' . $existingImage))) {
+                    unlink(public_path('courseImages/' . $existingImage));
                 }
 
                 // Upload the new image
@@ -1031,7 +1032,7 @@ class CourseController extends Controller
         DB::beginTransaction();
         try {
             $section = Section::with('contents')->findOrFail($id);
-            
+
             // Shift subsequent sections
             Section::where('course_id', $section->course_id)
                 ->where('position', '>', $section->position)
@@ -1039,7 +1040,7 @@ class CourseController extends Controller
 
             $newSection = $section->replicate();
             $newSection->name = $section->name . ' (Copy)';
-            $newSection->position = $section->position + 1; 
+            $newSection->position = $section->position + 1;
             $newSection->push();
 
             foreach ($section->contents as $content) {
@@ -1080,7 +1081,7 @@ class CourseController extends Controller
         $newContent->section_id = $newSectionId;
         $newContent->title = $content->title . ' (Copy)';
         $newContent->position = $content->position + 1;
-        
+
         if ($content->contentable) {
             $contentable = $content->contentable;
             $newContentable = $contentable->replicate();
@@ -1088,13 +1089,13 @@ class CourseController extends Controller
                 $newContentable->uuid = (string) Str::uuid();
             }
             $newContentable->push();
-            
+
             $newContent->contentable_id = $newContentable->id;
             switch ($content->contentType) {
                 case 'quiz':
                     foreach ($contentable->questions as $q) {
                         $nQ = $q->replicate();
-                        if(isset($nQ->uuid)) $nQ->uuid = (string) Str::uuid();
+                        if (isset($nQ->uuid)) $nQ->uuid = (string) Str::uuid();
                         $nQ->quiz_setting_id = $newContentable->id;
                         $nQ->push();
                     }
@@ -1102,7 +1103,7 @@ class CourseController extends Controller
                 case 'survey':
                     foreach ($contentable->questions as $q) {
                         $nQ = $q->replicate();
-                        if(isset($nQ->uuid)) $nQ->uuid = (string) Str::uuid();
+                        if (isset($nQ->uuid)) $nQ->uuid = (string) Str::uuid();
                         $nQ->survey_id = $newContentable->id;
                         $nQ->push();
                     }
@@ -1110,19 +1111,19 @@ class CourseController extends Controller
                 case 'assignment':
                     foreach ($contentable->rubrics as $rubric) {
                         $nRubric = $rubric->replicate();
-                        if(isset($nRubric->uuid)) $nRubric->uuid = (string) Str::uuid();
+                        if (isset($nRubric->uuid)) $nRubric->uuid = (string) Str::uuid();
                         $nRubric->assignment_id = $newContentable->id;
                         $nRubric->push();
                         foreach ($rubric->levels as $level) {
                             $nLevel = $level->replicate();
-                            if(isset($nLevel->uuid)) $nLevel->uuid = (string) Str::uuid();
+                            if (isset($nLevel->uuid)) $nLevel->uuid = (string) Str::uuid();
                             $nLevel->rubric_id = $nRubric->id;
                             $nLevel->push();
                         }
                     }
                     foreach ($contentable->resources as $res) {
                         $nRes = $res->replicate();
-                        if(isset($nRes->uuid)) $nRes->uuid = (string) Str::uuid();
+                        if (isset($nRes->uuid)) $nRes->uuid = (string) Str::uuid();
                         $nRes->assignment_id = $newContentable->id;
                         $nRes->push();
                     }
