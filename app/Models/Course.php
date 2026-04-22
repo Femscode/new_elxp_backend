@@ -35,6 +35,7 @@ class Course extends Model
 
     public function getImageAttribute($value)
     {
-        return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/courseImages/' . $value;
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/courseImages/' . $value;
+        return null;
     }
 }
