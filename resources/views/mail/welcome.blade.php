@@ -22,22 +22,21 @@
                             style="text-align:left; margin: 0 20px; padding: 40px; background-color:#ffffff; border-radius: 6px">
                             <!--begin:Email content-->
                             <div style="padding-bottom: 30px; font-size: 17px;">
-                                <strong>Welcome to Connectinskillz – Your Digital Journey Begins!!</strong>
+                                <strong>Welcome to CS-ELXP – Your Digital Journey Begins!!</strong>
                             </div>
                             <div style="padding-bottom: 30px">
                                 Dear {{ $name }}, We're thrilled to have you join our community of learners, innovators, and digital trailblazers. <br><br>
-                                At ConnectinSkillz, we’re passionate about equipping you with the skills and knowledge to thrive in the ever-evolving digital landscape.
+                                At CS-ELXP, we’re passionate about equipping you with the skills and knowledge to thrive in the ever-evolving digital landscape.
                                 <br><br>
 
                                 Kindly proceed to set your password through the link below.<br>
-                             
-                                  </div>
+
+                            </div>
 
 
                             <div style="padding-bottom: 40px; text-align:center;">
-                                <a href="https://connectinskillz.com/set-password?uuid={{$uuid}}" rel="noopener" target="_blank" rel="noopener"
-                                    style="text-decoration:none;display:inline-block;text-align:center;padding:0.75575rem 1.3rem;font-size:0.925rem;line-height:1.5;border-radius:0.35rem;color:#ffffff;background-color:#009EF7;border:0px;margin-right:0.75rem!important;font-weight:600!important;outline:none!important;vertical-align:middle"
-                                    target="_blank">Set Your Password</a>
+                                <a href="{{ env('FRONTEND_URL') }}/setup/{{ $uuid }}" rel="noopener" target="_blank"
+                                    style="text-decoration:none;display:inline-block;text-align:center;padding:0.75575rem 1.3rem;font-size:0.925rem;line-height:1.5;border-radius:0.35rem;color:#ffffff;background-color:#009EF7;border:0px;margin-right:0.75rem!important;font-weight:600!important;outline:none!important;vertical-align:middle">Set Your Password</a>
                             </div>
 
                             <div style="border-bottom: 1px solid #eeeeee; margin: 15px 0"></div>
@@ -45,7 +44,7 @@
 
                             <!--end:Email content-->
                             <div style="padding-bottom: 10px">Kind regards,
-                                <br>The ConnectinSkillz Team.
+                                <br>The CS-ELXP Team.
                 <tr>
                     <td style="font-size: 13px; text-align:center;padding: 20px; color: #6d6e7c;">
                         <p>United Kingdom.</p>

@@ -112,20 +112,21 @@ class RegisteredUserController extends Controller
             // Log the user in
             // Auth::login($user);
 
-            // Return the response
-            // try {
-            //     $email = $user->email;
-            //     $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
-            //     Mail::send('mail.welcome', $data, function ($message) use ($email) {
-            //         $message->to($email)->subject('Welcome to CSLXP');
-            //         $message->from('support@connectinskillz.com', 'Connectinskillz');
-            //     });
-            //     $data['message'] = 'Welcome Mail Sent Successfully!';
-            // } catch (\Exception $e) {
-            //     $data['message'] = $e->getMessage();
-            // }
 
-            $data['message'] = 'Welcome mail sent!';
+            // Return the response
+            try {
+                $email = $user->email;
+                $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
+                Mail::send('mail.welcome', $data, function ($message) use ($email) {
+                    $message->to($email)->subject('Welcome to CSLXP');
+                    $message->from('support@cttaste.com', 'CS-ELXP');
+                    // $message->from('support@connectinskillz.com', 'Connectinskillz');
+                });
+                $data['message'] = 'Welcome Mail Sent Successfully!';
+            } catch (\Exception $e) {
+                $data['message'] = $e->getMessage();
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'User created successfully',

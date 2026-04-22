@@ -739,7 +739,10 @@ class CourseController extends Controller
                 foreach ($courseData['sections'] as $sectionIndex => $sectionData) {
                     $section = Section::updateOrCreate(
                         ['id' => $sectionData['id'] ?? null, 'course_id' => $course->uuid], // Ensure correct course_id
-                        collect($sectionData)->except(['contents', 'created_at', 'updated_at'])->merge(['position' => $sectionIndex])->toArray()
+                        collect($sectionData)
+                            ->except(['id', 'contents', 'section_id', 'course_id', 'created_at', 'updated_at']) // Exclude id & any rogue section_id
+                            ->merge(['position' => $sectionIndex])
+                            ->toArray()
                     );
 
                     $updatedSectionIds[] = $section->id;
@@ -751,8 +754,15 @@ class CourseController extends Controller
 
                         foreach ($sectionData['contents'] as $contentIndex => $contentData) {
                             $content = Content::updateOrCreate(
-                                ['id' => $contentData['id'] ?? null, 'section_id' => $section->id, 'course_id' => $course->uuid], // Ensure correct section_id
-                                collect($contentData)->except(['created_at', 'updated_at'])->merge(['position' => $contentIndex])->toArray()
+                                ['id' => $contentData['id'] ?? null], // Match by content id only
+                                collect($contentData)
+                                    ->except(['id', 'created_at', 'updated_at'])
+                                    ->merge([
+                                        'section_id' => $section->id,   // Force to target section
+                                        'course_id'  => $course->uuid,  // Force to this course
+                                        'position'   => $contentIndex,
+                                    ])
+                                    ->toArray()
                             );
                             $updatedContentIds[] = $content->id;
                         }
