@@ -13,11 +13,40 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\MBIController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\Learners\AuthController as LearnersAuthController;
+use App\Http\Controllers\Learners\ProfileController as LearnersProfileController;
+use App\Http\Controllers\Learners\CourseController as LearnersCourseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Learners Route Group
+Route::group(['prefix' => 'learners'], function () {
+    Route::post('/register', [LearnersAuthController::class, 'register']);
+    Route::post('/login', [LearnersAuthController::class, 'login']);
 
+    Route::group(['middleware' => ['auth:sanctum']], function () {
+        Route::get('/profile', [LearnersAuthController::class, 'profile']);
+        Route::post('/logout', [LearnersAuthController::class, 'logout']);
 
+        // Profile Management
+        Route::post('/profile/update', [LearnersProfileController::class, 'updateProfile']);
+        Route::post('/profile/notifications', [LearnersProfileController::class, 'updateNotifications']);
+        Route::post('/profile/change-password', [LearnersProfileController::class, 'changePassword']);
+        Route::post('/profile/delete-account', [LearnersProfileController::class, 'deleteAccount']);
+
+        // Course Management
+        Route::get('/courses', [LearnersCourseController::class, 'index']);
+        Route::get('/courses/{uuid}', [LearnersCourseController::class, 'show']);
+        Route::get('/courses/{course_id}/contents/{content_id}', [LearnersCourseController::class, 'getContent']);
+        Route::post('/courses/content/complete', [LearnersCourseController::class, 'markAsComplete']);
+        Route::post('/courses/quiz/submit', [LearnersCourseController::class, 'submitQuiz']);
+        Route::post('/courses/assignment/submit', [LearnersCourseController::class, 'submitAssignment']);
+        Route::post('/courses/survey/submit', [LearnersCourseController::class, 'submitSurvey']);
+        Route::post('/courses/enroll-free', [LearnersCourseController::class, 'enrollFree']);
+        Route::post('/courses/payment/initialize', [LearnersCourseController::class, 'initializePayment']);
+        Route::post('/courses/payment/verify', [LearnersCourseController::class, 'verifyPayment']);
+    });
+});
 
 //New register approach
 Route::any('/auth/register', [RegisteredUserController::class, 'store2'])->name('signup');

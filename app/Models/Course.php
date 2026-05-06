@@ -27,6 +27,11 @@ class Course extends Model
     {
         return $this->hasMany(Content::class, 'course_id', 'uuid');
     }
+    public function instructor()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'uuid');
+    }
+
     public function base_contents()
     {
         return $this->hasMany(Content::class, 'course_id', 'uuid')

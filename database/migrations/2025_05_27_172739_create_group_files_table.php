@@ -13,6 +13,7 @@ class CreateGroupFilesTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('group_files');
         Schema::create('group_files', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
@@ -25,8 +26,8 @@ class CreateGroupFilesTable extends Migration
             $table->string('file_size')->nullable();
             $table->string('name')->nullable();
             $table->timestamps();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
+            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
         });
     }
 
