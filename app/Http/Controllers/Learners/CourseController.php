@@ -769,4 +769,214 @@ class CourseController extends Controller
             return response()->json(['status' => false, 'message' => 'Failed to load evaluations', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function getUserAchievements(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            // Fetch active enrollments with related courses and their instructor details
+            $enrollments = Enrollment::with(['course.instructor'])
+                ->where('user_id', $user->uuid)
+                ->where('status', 'active')
+                ->get();
+
+            $certificates = [];
+
+            foreach ($enrollments as $enrol) {
+                $course = $enrol->course;
+                if (!$course) continue;
+
+                // Count course contents
+                $totalContents = Content::where('course_id', $course->uuid)->count();
+                if ($totalContents === 0) continue;
+
+                // Count completed contents
+                $completedCount = ContentCompletion::where('user_id', $user->uuid)
+                    ->where('course_id', $course->uuid)
+                    ->count();
+
+                // Calculate percentage
+                $percent = round(($completedCount / $totalContents) * 100);
+
+                // If fully completed, issue certificate
+                if ($percent >= 100) {
+                    // Determine issuance date safely
+                    $lastCompletion = ContentCompletion::where('user_id', $user->uuid)
+                        ->where('course_id', $course->uuid)
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                    $issueDate = $lastCompletion ? $lastCompletion->created_at : now();
+
+                    // Stable deterministic credential ID generation
+                    $credBase = substr($course->uuid, 0, 4) . substr($user->uuid, 0, 4);
+                    
+                    $certificates[] = [
+                        'id' => 'CERT-' . strtoupper($credBase),
+                        'title' => $course->title,
+                        'issuer' => 'ELXP Learning',
+                        'earnedAt' => $issueDate instanceof \DateTime ? $issueDate->format('F j, Y') : date('F j, Y', strtotime($issueDate)),
+                        'grade' => 'Completed',
+                        'instructor' => $course->instructor ? ($course->instructor->first_name . ' ' . $course->instructor->last_name) : 'ELXP Mentor',
+                        'credentialId' => 'ELXP-' . strtoupper(substr($course->title, 0, 2)) . '-' . date('Y') . '-' . strtoupper($credBase),
+                        'template' => $course->certificate_template ?? 1,
+                        'course_id' => $course->uuid
+                    ];
+                }
+            }
+
+            // Return synthetic payload
+            return response()->json([
+                'status' => true,
+                'message' => 'Achievements gathered',
+                'data' => [
+                    'certificates' => $certificates,
+                    'badges' => [], 
+                    'milestones' => []
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Analysis halt', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getDashboardStats(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $userId = $user->uuid;
+
+            // 1. Statistics
+            $enrolledCount = Enrollment::where('user_id', $userId)->where('status', 'active')->count();
+            $completionsCount = ContentCompletion::where('user_id', $userId)->count();
+            
+            // Compute achievements
+            $enrollments = Enrollment::with('course')->where('user_id', $userId)->where('status', 'active')->get();
+            $achievementCount = 0;
+            $continueLearning = [];
+
+            foreach ($enrollments as $enrol) {
+                if (!$enrol->course) continue;
+                $totalContents = Content::where('course_id', $enrol->course->uuid)->count();
+                if ($totalContents === 0) continue;
+
+                $completed = ContentCompletion::where('user_id', $userId)
+                    ->where('course_id', $enrol->course->uuid)
+                    ->count();
+                
+                $progressPercent = round(($completed / $totalContents) * 100);
+
+                if ($progressPercent >= 100) {
+                    $achievementCount++;
+                } else {
+                    // Add candidate for Continue Learning
+                    $continueLearning[] = [
+                        'id' => $enrol->course->uuid,
+                        'title' => $enrol->course->title,
+                        'progress' => (int)$progressPercent,
+                        'lesson' => 'Resume Course',
+                        'thumbnail' => $enrol->course->image,
+                        'category' => 'Course',
+                        'nextType' => 'content',
+                        'lastActive' => ContentCompletion::where('user_id', $userId)
+                            ->where('course_id', $enrol->course->uuid)
+                            ->latest('created_at')
+                            ->first()?->created_at ?: $enrol->created_at
+                    ];
+                }
+            }
+
+            // Sort Continue Learning by last active descending and take top 3
+            usort($continueLearning, function($a, $b) {
+                return strtotime((string)$b['lastActive']) - strtotime((string)$a['lastActive']);
+            });
+            $continueLearning = array_slice($continueLearning, 0, 3);
+
+            // 2. Upcoming Deadlines 
+            $evalResponse = $this->getUserEvaluations($request);
+            $evalData = json_decode($evalResponse->getContent(), true);
+            $allEvaluations = isset($evalData['data']) ? $evalData['data'] : [];
+            
+            $pendingDeadlines = array_filter($allEvaluations, function($ev) {
+                return $ev['status'] === 'pending' && $ev['dueDate'] !== null;
+            });
+            usort($pendingDeadlines, function($a, $b) {
+                return strtotime((string)$a['dueDate']) - strtotime((string)$b['dueDate']);
+            });
+            $upcomingDeadlines = array_slice(array_values($pendingDeadlines), 0, 3);
+
+            // 3. Recent Activity feed
+            $activities = [];
+            
+            // Get latest completions
+            $recentCompletions = ContentCompletion::with('content')
+                ->where('user_id', $userId)
+                ->latest()
+                ->take(3)
+                ->get();
+
+            foreach ($recentCompletions as $rc) {
+                $activities[] = [
+                    'id' => 'rc_'.$rc->id,
+                    'action' => 'Completed lesson',
+                    'detail' => $rc->content ? $rc->content->title : 'Lesson',
+                    'time' => $rc->created_at,
+                    'type' => 'completion'
+                ];
+            }
+
+            // Get latest assignment submissions
+            $recentSubs = AssignmentSubmission::with('assignment')
+                ->where('user_id', $userId)
+                ->latest()
+                ->take(2)
+                ->get();
+
+            foreach ($recentSubs as $sub) {
+                $activities[] = [
+                    'id' => 'sub_'.$sub->id,
+                    'action' => 'Submitted assignment',
+                    'detail' => $sub->assignment ? $sub->assignment->title : 'Assignment',
+                    'time' => $sub->created_at,
+                    'type' => 'submission'
+                ];
+            }
+
+            // Sort all merged activities descending by time
+            usort($activities, function($a, $b) {
+                return strtotime((string)$b['time']) - strtotime((string)$a['time']);
+            });
+            
+            // Format Times
+            $formattedActivities = array_map(function($act) {
+                $ts = is_string($act['time']) ? strtotime($act['time']) : (isset($act['time']->timestamp) ? $act['time']->timestamp : strtotime($act['time']));
+                $diff = time() - $ts;
+                
+                if ($diff < 3600) $rel = max(1, floor($diff/60)).'m ago';
+                else if ($diff < 86400) $rel = floor($diff/3600).'h ago';
+                else $rel = date('M j', $ts);
+
+                return array_merge($act, ['time' => $rel]);
+            }, array_slice($activities, 0, 4));
+
+            return response()->json([
+                'status' => true,
+                'data' => [
+                    'stats' => [
+                        'enrolled' => $enrolledCount,
+                        'completedLessons' => $completionsCount,
+                        'achievements' => $achievementCount,
+                        'studyHours' => round($completionsCount * 0.25, 1).'h',
+                        'streak' => 0
+                    ],
+                    'continueLearning' => $continueLearning,
+                    'deadlines' => $upcomingDeadlines,
+                    'recentActivity' => array_values($formattedActivities)
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Failed to gather dashboard', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

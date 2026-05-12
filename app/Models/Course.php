@@ -9,7 +9,7 @@ class Course extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $fillable = ['title', 'description',  'price', 'image', 'course_code', 'user_id', 'instructor_id', 'status', 'uuid'];
+    protected $fillable = ['title', 'description',  'price', 'image', 'course_code', 'user_id', 'instructor_id', 'status', 'uuid', 'certificate_template'];
     protected $table = 'courses';
     protected $hidden = ['created_at', 'updated_at'];
 

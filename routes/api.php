@@ -47,6 +47,8 @@ Route::group(['prefix' => 'learners'], function () {
         Route::post('/courses/payment/initialize', [LearnersCourseController::class, 'initializePayment']);
         Route::post('/courses/payment/verify', [LearnersCourseController::class, 'verifyPayment']);
         Route::get('/evaluations', [LearnersCourseController::class, 'getUserEvaluations']);
+        Route::get('/achievements', [LearnersCourseController::class, 'getUserAchievements']);
+        Route::get('/dashboard', [LearnersCourseController::class, 'getDashboardStats']);
     });
 });
 

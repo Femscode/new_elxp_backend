@@ -14,4 +14,9 @@ class ContentCompletion extends Model
         'course_id',
         'content_id',
     ];
+
+    public function content()
+    {
+        return $this->belongsTo(Content::class, 'content_id');
+    }
 }
