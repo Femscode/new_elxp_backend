@@ -160,15 +160,27 @@ class CourseController extends Controller
                 return response()->json(['status' => false, 'message' => 'Content not found'], 404);
             }
 
-            $isCompleted = ContentCompletion::where('user_id', $user->uuid)
-                ->where('content_id', $content->id)
-                ->exists();
+            $completedContentIds = ContentCompletion::where('user_id', $user->uuid)
+                ->where('course_id', $course_id)
+                ->pluck('content_id')
+                ->toArray();
 
-            // Get all contents of this course in order for navigation
-            $allContents = Content::where('course_id', $course_id)
+            $isCompleted = in_array($content->id, $completedContentIds);
+
+            // Get all contents of this course in order for navigation, with completion state
+            $allContents = Content::with('section')->where('course_id', $course_id)
                 ->orderBy('section_id')
                 ->orderBy('id')
-                ->get(['id', 'title', 'contentType']);
+                ->get()
+                ->map(function ($c) use ($completedContentIds) {
+                    return [
+                        'id' => $c->id,
+                        'title' => $c->title,
+                        'contentType' => $c->contentType,
+                        'sectionName' => $c->section ? $c->section->name : 'Curriculum',
+                        'isCompleted' => in_array($c->id, $completedContentIds)
+                    ];
+                });
 
             $data = $content->data;
 
@@ -296,7 +308,7 @@ class CourseController extends Controller
                     'data' => $data,
                     'file' => $content->file,
                     'isCompleted' => $isCompleted,
-                    'allContents' => $allContents 
+                    'allContents' => $allContents
                 ]
             ]);
         } catch (\Exception $e) {
@@ -641,6 +653,120 @@ class CourseController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Failed to submit survey', 'error' => $e->getMessage()], 500);
+        }
+    }
+    /**
+     * Fetch all evaluations (assignments, quizzes, surveys) for current user globally.
+     */
+    public function getUserEvaluations(Request $request)
+    {
+        try {
+            $user = $request->user();
+            // Get enrolled courses
+            $enrolledCourseIds = Enrollment::where('user_id', $user->uuid)
+                ->where('status', 'active')
+                ->pluck('course_id')
+                ->toArray();
+
+            if (empty($enrolledCourseIds)) {
+                return response()->json(['status' => true, 'data' => []]);
+            }
+
+            // Fetch all contents of types assignment, quiz, survey belonging to enrolled courses
+            $evaluations = Content::with(['course'])
+                ->whereIn('course_id', $enrolledCourseIds)
+                ->whereIn('contentType', ['assignment', 'quiz', 'survey'])
+                ->get();
+
+            // Collect IDs to load related details efficiently
+            $assignmentIds = $evaluations->where('contentType', 'assignment')->pluck('contentable_id')->filter()->unique()->toArray();
+            $quizIds = $evaluations->where('contentType', 'quiz')->pluck('contentable_id')->filter()->unique()->toArray();
+            $surveyIds = $evaluations->where('contentType', 'survey')->pluck('contentable_id')->filter()->unique()->toArray();
+
+            // Fetch linked objects
+            $assignments = Assignment::whereIn('id', $assignmentIds)->get()->keyBy('id');
+            $quizzes = QuizSetting::whereIn('id', $quizIds)->get()->keyBy('id');
+            $surveys = Survey::whereIn('id', $surveyIds)->get()->keyBy('id');
+
+            // Fetch user interactions
+            $submissions = AssignmentSubmission::where('user_id', $user->uuid)
+                ->whereIn('assignment_id', $assignmentIds)
+                ->get()
+                ->groupBy('assignment_id');
+
+            $attempts = QuizAttempt::where('user_id', $user->uuid)
+                ->whereIn('quiz_setting_id', $quizIds)
+                ->orderBy('score', 'desc') // Highest score first
+                ->get()
+                ->groupBy('quiz_setting_id');
+
+            $responses = SurveyResponse::where('user_id', $user->uuid)
+                ->whereIn('survey_id', $surveyIds)
+                ->get()
+                ->keyBy('survey_id');
+
+            $data = $evaluations->map(function ($item) use ($user, $assignments, $quizzes, $surveys, $submissions, $attempts, $responses) {
+                $linkedId = $item->contentable_id;
+                $status = 'pending';
+                $grade = null;
+                $maxGrade = 100; // Default
+                $dueDate = null;
+                $description = $item->description;
+
+                if ($item->contentType === 'assignment' && isset($assignments[$linkedId])) {
+                    $a = $assignments[$linkedId];
+                    $dueDate = $a->due_date ? $a->due_date->toDateTimeString() : null;
+                    $maxGrade = $a->points ?: 100;
+                    $description = $a->description ?: $description;
+
+                    $subs = $submissions->get($linkedId);
+                    $sub = $subs ? $subs->first() : null;
+                    if ($sub) {
+                        $status = $sub->status === 'graded' ? 'graded' : 'submitted';
+                        $grade = $sub->grade;
+                    }
+                } elseif ($item->contentType === 'quiz' && isset($quizzes[$linkedId])) {
+                    $q = $quizzes[$linkedId];
+                    $description = $q->description ?: $description;
+                    // Max score assumption is usually aggregate questions points. We check attempt for total_points
+                    $ats = $attempts->get($linkedId);
+                    $attempt = $ats ? $ats->first() : null;
+                    if ($attempt) {
+                        $status = 'graded'; // Quizzes are auto-graded usually
+                        $grade = $attempt->score;
+                        $maxGrade = $attempt->total_points ?: 100;
+                    }
+                } elseif ($item->contentType === 'survey' && isset($surveys[$linkedId])) {
+                    $s = $surveys[$linkedId];
+                    $description = $s->description ?: $description;
+                    $maxGrade = 0; // Surveys don't have grades usually
+                    if (isset($responses[$linkedId])) {
+                        $status = 'submitted';
+                    }
+                }
+
+                return [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'course' => $item->course ? $item->course->title : 'Unknown Course',
+                    'courseId' => $item->course_id,
+                    'dueDate' => $dueDate,
+                    'status' => $status,
+                    'type' => $item->contentType,
+                    'maxGrade' => (int)$maxGrade,
+                    'grade' => $grade !== null ? (int)$grade : null,
+                    'urgent' => $dueDate && (strtotime($dueDate) - time() < 86400 * 2) && $status === 'pending', // Urgent if due within 48h
+                    'description' => $description,
+                ];
+            });
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Evaluations retrieved successfully',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Failed to load evaluations', 'error' => $e->getMessage()], 500);
         }
     }
 }

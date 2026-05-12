@@ -16,6 +16,7 @@ use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\Learners\AuthController as LearnersAuthController;
 use App\Http\Controllers\Learners\ProfileController as LearnersProfileController;
 use App\Http\Controllers\Learners\CourseController as LearnersCourseController;
+use App\Http\Controllers\GradingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,7 @@ Route::group(['prefix' => 'learners'], function () {
         Route::post('/courses/enroll-free', [LearnersCourseController::class, 'enrollFree']);
         Route::post('/courses/payment/initialize', [LearnersCourseController::class, 'initializePayment']);
         Route::post('/courses/payment/verify', [LearnersCourseController::class, 'verifyPayment']);
+        Route::get('/evaluations', [LearnersCourseController::class, 'getUserEvaluations']);
     });
 });
 
@@ -124,6 +126,9 @@ Route::group(['prefix' => 'discussions', 'middleware' => 'auth:sanctum'], functi
     Route::get('/course/{course_id}', [DiscussionController::class, 'fetchByCourse'])->name('fetch-discussions-by-course');
     Route::get('/user/{user_id}', [DiscussionController::class, 'fetchByUser'])->name('fetch-discussions-by-user');
     Route::get('/fetchAll', [DiscussionController::class, 'fetchAll'])->name('fetch-all-discussions');
+    Route::get('/{id}', [DiscussionController::class, 'fetchSingle'])->name('fetch-single-discussion');
+    Route::post('/toggle-like/{id}', [DiscussionController::class, 'toggleLike'])->name('toggle-discussion-like');
+    Route::post('/toggle-save/{id}', [DiscussionController::class, 'toggleSave'])->name('toggle-discussion-save');
 });
 
 Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function () {
@@ -131,6 +136,7 @@ Route::group(['prefix' => 'replies', 'middleware' => 'auth:sanctum'], function (
     Route::put('/update/{id}', [DiscussionController::class, 'updateReply'])->name('update-reply');
     Route::delete('/delete/{id}', [DiscussionController::class, 'deleteReply'])->name('delete-reply');
     Route::get('/discussion/{discussion_id}', [DiscussionController::class, 'fetchByDiscussion'])->name('fetch-replies-by-discussion');
+    Route::post('/toggle-like/{id}', [DiscussionController::class, 'toggleReplyLike'])->name('toggle-reply-like');
 });
 
 Route::group(['prefix' => 'calender', 'middleware' => 'auth:sanctum'], function () {
@@ -165,6 +171,14 @@ Route::group(['prefix' => 'survey', 'middleware' => 'auth:sanctum'], function ()
     Route::get('show/{id}', [SurveyController::class, 'show'])->name("show_survey");
     Route::get('fetch/{id}', [SurveyController::class, 'fetch'])->name("fetch_survey");
     Route::delete('delete/{id}', [SurveyController::class, 'destroy'])->name("delete_survey");
+});
+
+Route::group(['prefix' => 'grading', 'middleware' => 'auth:sanctum'], function () {
+    Route::get('/overview', [GradingController::class, 'getOverview']);
+    Route::get('/courses', [GradingController::class, 'getCourses']);
+    Route::get('/course/{uuid}/assessments', [GradingController::class, 'getAssessments']);
+    Route::get('/assessment/{contentId}/submissions', [GradingController::class, 'getSubmissions']);
+    Route::post('/submission/{submissionId}/grade', [GradingController::class, 'gradeSubmission']);
 });
 
 Route::group(['prefix' => 'mbi'], function() {

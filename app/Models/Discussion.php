@@ -23,5 +23,14 @@ class Discussion extends Model
     {
         return $this->hasMany(Reply::class);
     }
-    
+
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'discussion_likes', 'discussion_id', 'user_id')->withTimestamps();
+    }
+
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'discussion_saves', 'discussion_id', 'user_id')->withTimestamps();
+    }
 }

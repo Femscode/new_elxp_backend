@@ -29,4 +29,9 @@ class Reply extends Model
     {
         return $this->hasMany(Reply::class, 'parent_reply_id');
     }
+
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'reply_likes', 'reply_id', 'user_id')->withTimestamps();
+    }
 }
