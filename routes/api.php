@@ -17,6 +17,7 @@ use App\Http\Controllers\Learners\AuthController as LearnersAuthController;
 use App\Http\Controllers\Learners\ProfileController as LearnersProfileController;
 use App\Http\Controllers\Learners\CourseController as LearnersCourseController;
 use App\Http\Controllers\GradingController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -181,6 +182,12 @@ Route::group(['prefix' => 'grading', 'middleware' => 'auth:sanctum'], function (
     Route::get('/course/{uuid}/assessments', [GradingController::class, 'getAssessments']);
     Route::get('/assessment/{contentId}/submissions', [GradingController::class, 'getSubmissions']);
     Route::post('/submission/{submissionId}/grade', [GradingController::class, 'gradeSubmission']);
+});
+
+Route::group(['prefix' => 'reports', 'middleware' => 'auth:sanctum'], function () {
+    Route::get('/metrics', [ReportController::class, 'getMetrics']);
+    Route::get('/course-performance', [ReportController::class, 'getCoursePerformance']);
+    Route::get('/detailed', [ReportController::class, 'getDetailedReport']);
 });
 
 Route::group(['prefix' => 'mbi'], function() {
