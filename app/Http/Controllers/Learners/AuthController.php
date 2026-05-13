@@ -51,7 +51,7 @@ class AuthController extends Controller
             try {
                 $email = $user->email;
                 $data = array('name' => $user->first_name, 'uuid' => $user->uuid, 'email' => $email);
-                Mail::send('mail.welcome', $data, function ($message) use ($email) {
+                Mail::send('mail.welcome_learners', $data, function ($message) use ($email) {
                     $message->to($email)->subject('Welcome to CS-ELXP Learners');
                     $message->from('support@cttaste.com', 'CS-ELXP');
                 });
@@ -98,8 +98,8 @@ class AuthController extends Controller
             }
 
             $user = User::where('email', $request->email)
-                        ->where('user_type', 'learners')
-                        ->first();
+                ->where('user_type', 'learners')
+                ->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([
