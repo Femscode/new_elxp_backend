@@ -34,4 +34,22 @@ class Reply extends Model
     {
         return $this->belongsToMany(User::class, 'reply_likes', 'reply_id', 'user_id')->withTimestamps();
     }
+
+    public function getImageAttribute($value)
+    {
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/replyImages/' . $value;
+        return null;
+    }
+
+    public function getVideoAttribute($value)
+    {
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/replyVideos/' . $value;
+        return null;
+    }
+
+    public function getFileAttribute($value)
+    {
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/replyFiles/' . $value;
+        return null;
+    }
 }

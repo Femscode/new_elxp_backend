@@ -33,4 +33,22 @@ class Discussion extends Model
     {
         return $this->belongsToMany(User::class, 'discussion_saves', 'discussion_id', 'user_id')->withTimestamps();
     }
+
+    public function getImageAttribute($value)
+    {
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/discussionImages/' . $value;
+        return null;
+    }
+
+    public function getVideoAttribute($value)
+    {
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/discussionVideos/' . $value;
+        return null;
+    }
+
+    public function getFilesAttribute($value)
+    {
+        if ($value) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/discussionFiles/' . $value;
+        return null;
+    }
 }
