@@ -24,6 +24,7 @@ class ProfileController extends Controller
                 'phone' => ['nullable', 'string', 'max:20'],
                 'bio' => ['nullable', 'string'],
                 'location' => ['nullable', 'string'],
+                'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             ]);
 
             if ($validator->fails()) {
@@ -34,13 +35,32 @@ class ProfileController extends Controller
                 ], 422);
             }
 
-            $user->update([
+            $user->fill([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'phone' => $request->phone,
                 'bio' => $request->bio,
                 'location' => $request->location,
             ]);
+
+            if ($request->hasFile('image')) {
+                $existingImage = $user->image;
+                if ($existingImage && file_exists(public_path('profilePic/' . $existingImage))) {
+                    @unlink(public_path('profilePic/' . $existingImage));
+                }
+
+                $destPath = public_path('profilePic');
+                if (!file_exists($destPath)) {
+                    mkdir($destPath, 0755, true);
+                }
+
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->hashName();
+                $image->move($destPath, $imageName);
+                $user->image = $imageName;
+            }
+
+            $user->save();
 
             return response()->json([
                 'status' => true,

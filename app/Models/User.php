@@ -22,6 +22,14 @@ class User extends Authenticatable
     // protected $fillable = ['uuid', 'first_name', 'last_name', 'email', 'bio', 'username', 'user_type', 'timezone', 'language', 'phone', 'image'];
     protected $table = 'users';
 
+    protected $appends = ['avatar'];
+
+    public function getAvatarAttribute()
+    {
+        if ($this->image) return 'https://elxp-backend.connectinskillz.com/new_elxp_files/public/profilePic/' . $this->image;
+        return null;
+    }
+
     // define transaction relationship 
 
     public function transactions()
@@ -43,6 +51,7 @@ class User extends Authenticatable
     {
         return 'uuid';
     }
+
 
 
 
