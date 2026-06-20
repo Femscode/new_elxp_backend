@@ -13,6 +13,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        \App\Models\User::updateOrCreate(
+            ['email' => 'cs-elxp-admin@gmail.com'],
+            [
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'first_name' => 'CS',
+                'last_name' => 'Admin',
+                'username' => 'cs_admin',
+                'password' => \Illuminate\Support\Facades\Hash::make('CSAdmin@2026'),
+                'user_type' => 'Admin',
+            ]
+        );
     }
 }

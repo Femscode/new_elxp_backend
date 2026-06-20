@@ -18,6 +18,11 @@ use App\Http\Controllers\Learners\ProfileController as LearnersProfileController
 use App\Http\Controllers\Learners\CourseController as LearnersCourseController;
 use App\Http\Controllers\GradingController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminLearnerController;
+use App\Http\Controllers\Admin\AdminTrainerController;
+use App\Http\Controllers\Admin\AdminCertificateController;
+use App\Http\Controllers\Admin\AdminCourseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -210,3 +215,37 @@ Route::apiResource('users', UserController::class);
 
 //Transaction Management Route (User must be authenticated using a Bearer Token generated from the login/register api)
 Route::middleware(['auth:sanctum'])->apiResource('transactions', TransactionController::class);
+
+// Admin Routes Group
+Route::group(['prefix' => 'admin'], function () {
+    Route::post('/login', [AdminController::class, 'login']);
+
+    Route::group(['middleware' => ['auth:sanctum']], function () {
+        Route::get('/overview', [AdminController::class, 'overview']);
+        
+        // Learners Management
+        Route::get('/learners', [AdminLearnerController::class, 'index']);
+        Route::post('/learners', [AdminLearnerController::class, 'store']);
+        Route::put('/learners/{uuid}', [AdminLearnerController::class, 'update']);
+        Route::delete('/learners/{uuid}', [AdminLearnerController::class, 'destroy']);
+
+        // Trainers Management
+        Route::get('/trainers', [AdminTrainerController::class, 'index']);
+        Route::post('/trainers', [AdminTrainerController::class, 'store']);
+        Route::put('/trainers/{uuid}', [AdminTrainerController::class, 'update']);
+        Route::delete('/trainers/{uuid}', [AdminTrainerController::class, 'destroy']);
+
+        // Certificates Management
+        Route::get('/certificates', [AdminCertificateController::class, 'index']);
+        Route::post('/certificates', [AdminCertificateController::class, 'store']);
+        Route::put('/certificates/{uuid}', [AdminCertificateController::class, 'update']);
+        Route::delete('/certificates/{uuid}', [AdminCertificateController::class, 'destroy']);
+
+        // Courses Management
+        Route::get('/courses', [AdminCourseController::class, 'index']);
+        Route::get('/courses/{uuid}', [AdminCourseController::class, 'show']);
+        Route::put('/courses/{uuid}', [AdminCourseController::class, 'update']);
+        Route::delete('/courses/{uuid}', [AdminCourseController::class, 'destroy']);
+        Route::get('/courses/{uuid}/enrollments', [AdminCourseController::class, 'enrollments']);
+    });
+});
