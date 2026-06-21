@@ -22,11 +22,25 @@ use Google\Cloud\RecaptchaEnterprise\V1\TokenProperties\InvalidReason;
 
 class UserController extends Controller
 {
+
+    public function landing()
+    {
+        //return API status
+        return response()->json([
+            'status' => true,
+            'message' => 'ELXP Backend API is running',
+            'data' => null,
+        ], 200);
+    }
     /**
      * Display a listing of the all users.
      */
-    
-    public function verifycaptcha($recaptchaKey, $token, $project, $action
+
+    public function verifycaptcha(
+        $recaptchaKey,
+        $token,
+        $project,
+        $action
     ) {
         // Create the reCAPTCHA client.
         // TODO: Cache the client generation code (recommended) or call client.close() before exiting the method.

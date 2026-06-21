@@ -24,6 +24,7 @@ return [
         'http://127.0.0.1:3000',
         'https://elxp-trainers.connectinskillz.com',
         'https://elxp-learners.connectinskillz.com',
+        'https://elxp-admin.connectinskillz.com',
         'https://nifinspired.connectinskillz.com',
         'https://nifinspired.connectinskillz.com/api',
     ],
