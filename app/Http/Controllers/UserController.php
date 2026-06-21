@@ -295,18 +295,33 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Find the user by email
+        // Find the token record
         $realuser = DB::table('password_reset_tokens')->where('token', $request['token'])->latest()->first();
-        $token = $realuser->token;
-        $user = User::where('email', $realuser->email)->first();
-        if ($token !== $request->token) {
-            return response()->json(['message' => 'Invalid/Expired token']);
+        if (!$realuser) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid or expired password reset token.'
+            ], 400);
         }
+
+        $user = User::where('email', $realuser->email)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User associated with this token not found.'
+            ], 404);
+        }
+
         // Reset the user's password
         $user->password = Hash::make($request->password);
         $user->save();
+        
         DB::table('password_reset_tokens')->where('token', $request['token'])->delete();
-        return response()->json(['message' => 'Password reset successful'], 200);
+        
+        return response()->json([
+            'status' => true,
+            'message' => 'Password reset successful.'
+        ], 200);
     }
 
     public function forgot_password(Request $request)
@@ -332,10 +347,17 @@ class UserController extends Controller
                 'token' => $ref,
             ]);
 
-
+            // Construct dynamic redirect URL link if provided
+            $redirectUrl = $request->input('redirect_url');
+            if ($redirectUrl) {
+                $separator = (strpos($redirectUrl, '?') !== false) ? '&' : '?';
+                $resetLink = $redirectUrl . $separator . 'token=' . $ref . '&email=' . urlencode($email);
+            } else {
+                $resetLink = 'https://connectinskillz.com/password-reset?token=' . $ref . '&email=' . urlencode($email);
+            }
 
             //here is where the mail comes in
-            $data = array('name' => $name, 'ref' => $ref, 'email' => $email);
+            $data = array('name' => $name, 'ref' => $ref, 'email' => $email, 'reset_link' => $resetLink);
             try {
                 Mail::send('mail.forgot-password', $data, function ($message) use ($email) {
                     $message->to($email)->subject('CSLXP Reset Password');

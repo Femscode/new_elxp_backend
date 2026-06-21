@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\AdminLearnerController;
 use App\Http\Controllers\Admin\AdminTrainerController;
 use App\Http\Controllers\Admin\AdminCertificateController;
 use App\Http\Controllers\Admin\AdminCourseController;
+use App\Http\Controllers\Admin\AdminManagementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -247,5 +248,11 @@ Route::group(['prefix' => 'admin'], function () {
         Route::put('/courses/{uuid}', [AdminCourseController::class, 'update']);
         Route::delete('/courses/{uuid}', [AdminCourseController::class, 'destroy']);
         Route::get('/courses/{uuid}/enrollments', [AdminCourseController::class, 'enrollments']);
+
+        // Admins Management
+        Route::get('/admins', [AdminManagementController::class, 'index']);
+        Route::post('/admins', [AdminManagementController::class, 'store']);
+        Route::put('/admins/{uuid}', [AdminManagementController::class, 'update']);
+        Route::delete('/admins/{uuid}', [AdminManagementController::class, 'destroy']);
     });
 });
